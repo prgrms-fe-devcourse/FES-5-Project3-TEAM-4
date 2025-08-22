@@ -1,0 +1,5 @@
+blank_issues_enabled : false
+contact_links:
+- name : 질문은 Discussion에서!
+  url : https://github.com/mtm-git1018/github-project/discussions
+  about : 질문이나 일반적인 논의는 Discussions 탭을 이용해주세요.
