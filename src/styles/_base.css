@@ -2,6 +2,9 @@
   html {
     min-block-size: 100.1vh;
   }
+  body {
+    @apply font-mono;
+  }
   [hidden] {
     display: none !important;
   }
