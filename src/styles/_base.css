@@ -1,0 +1,29 @@
+@layer base {
+  html {
+    min-block-size: 100.1vh;
+  }
+  [hidden] {
+    display: none !important;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply text-indigo-700 leading-tight;
+  }
+  h1 {
+    @apply text-2xl;
+  }
+  h2 {
+    @apply text-xl;
+  }
+  h3 {
+    @apply text-lg;
+  }
+
+  p {
+    @apply text-slate-700 text-base leading-normal;
+  }
+  button {
+    @apply disabled:cursor-not-allowed;
+  }
+}
