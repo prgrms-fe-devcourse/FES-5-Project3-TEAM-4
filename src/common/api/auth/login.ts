@@ -8,7 +8,6 @@ export async function login(email: string, password: string) {
       email,
       password,
     });
-    console.log(loginError);
     if (loginError) {
       console.error('로그인 실패!', loginError.message);
       return;
