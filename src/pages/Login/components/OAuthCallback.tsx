@@ -1,6 +1,6 @@
 import { insertProfile, selectProfile } from '@/common/api/Profile/profile';
 import supabase from '@/common/api/supabase/supabase';
-import { useAuth } from '@/common/store/authstore';
+import { useAuth } from '@/common/store/authStore';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/shallow';

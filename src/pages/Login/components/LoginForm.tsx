@@ -1,7 +1,7 @@
 import { login } from '@/common/api/auth/login';
 import EmailField from '@/common/components/EmailField';
 import PasswordField from '@/common/components/PasswordField';
-import { useAuth } from '@/common/store/authstore';
+import { useAuth } from '@/common/store/authStore';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 

@@ -1,4 +1,4 @@
-import { useAuth } from '@/common/store/authstore';
+import { useAuth } from '@/common/store/authStore';
 import supabase from '../supabase/supabase';
 import type { Provider } from '@supabase/supabase-js';
 
