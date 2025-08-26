@@ -27,7 +27,7 @@ function PasswordField({ onChange }: Props) {
           onInput={handleInput}
         />
 
-        <button type="button" className="w-4" onClick={handleShowHide}>
+        <button type="button" className="w-4 cursor-pointer" onClick={handleShowHide}>
           <img
             src={isPasswordShow ? '/icons/show.svg' : '/icons/hide.svg'}
             alt="비밀번호확인이미지"

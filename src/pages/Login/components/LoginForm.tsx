@@ -1,15 +1,25 @@
+import { login } from '@/common/api/auth/login';
 import EmailField from '@/common/components/EmailField';
 import PasswordField from '@/common/components/PasswordField';
+import { useAuth } from '@/common/store/authstore';
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const setUserInfo = useAuth((state) => state.setUserInfo);
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    alert(email);
-    alert(password);
+    const userInfo = await login(email, password);
+    if (userInfo) {
+      const provider = userInfo.app_metadata.provider ?? 'email';
+      setUserInfo({ userId: userInfo.id, provider });
+      alert('로그인 성공');
+      navigate('/');
+    }
   };
 
   return (
@@ -19,7 +29,7 @@ function LoginForm() {
         <PasswordField onChange={(email: string) => setPassword(email)} />
       </div>
       <div className="flex justify-between text-main-white text-xs mb-4">
-        <a href="#">Register</a>
+        <Link to={'/auth/register'}>Register</Link>
         <a href="#">forgot password?</a>
       </div>
 
