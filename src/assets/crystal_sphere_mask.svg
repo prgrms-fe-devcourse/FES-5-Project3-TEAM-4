@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" aria-labelledby="title desc" role="img">
+  <title>Crystal Ball Circular Mask</title>
+  <desc>Use as a CSS/SVG mask or clip for revealing particles only inside the sphere.</desc>
+  <!-- Black background (masked out) -->
+  <rect x="0" y="0" width="1024" height="1024" fill="black"/>
+  <!-- White area shows through the mask -->
+  <circle cx="512" cy="512" r="440" fill="white"/>
+</svg>
