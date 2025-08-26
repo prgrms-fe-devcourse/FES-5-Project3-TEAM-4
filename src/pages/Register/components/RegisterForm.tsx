@@ -1,4 +1,5 @@
 import { registUser } from '@/common/api/auth/register';
+import { insertProfile } from '@/common/api/Profile/profile';
 import AuthValidate from '@/common/components/AuthValidate';
 import EmailField from '@/common/components/EmailField';
 import PasswordField from '@/common/components/PasswordField';
@@ -12,14 +13,23 @@ function RegisterForm() {
   const [validation, setValidation] = useState('');
   const navigate = useNavigate();
 
-  const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (password !== passwordConfirm) {
       setValidation('비밀번호가 일치하지 않습니다.');
       return;
     }
-    registUser(email, password);
-    navigate('/auth/login');
+    const registUserInfo = await registUser(email, password);
+    if (registUserInfo && registUserInfo.id) {
+      const res = await insertProfile(registUserInfo.id);
+      if (res.ok) {
+        navigate('/auth/login');
+      } else {
+        console.error('회원가입 중 오류가 발생하였습니다.');
+      }
+    } else {
+      console.error('회원가입 중 오류가 발생하였습니다.');
+    }
   };
 
   return (

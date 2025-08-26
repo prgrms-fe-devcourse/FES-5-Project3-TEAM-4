@@ -18,6 +18,7 @@ export async function registUser(email: string, password: string) {
       console.error('회원가입 실패!', signUpError?.message);
       return;
     }
+    return user;
   } catch (error) {
     console.error('회원가입에러', error);
   }
