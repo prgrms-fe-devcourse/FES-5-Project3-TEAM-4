@@ -1,10 +1,13 @@
-import Register from './pages/Register';
+import { RouterProvider } from 'react-router';
+import { routes } from './router/routes';
+import { Suspense } from 'react';
 
 function App() {
   return (
-    <>
-      <Register />
-    </>
+    // TODO: loading component 넣기
+    <Suspense fallback={<div>로딩 중...</div>}>
+      <RouterProvider router={routes}></RouterProvider>
+    </Suspense>
   );
 }
 
