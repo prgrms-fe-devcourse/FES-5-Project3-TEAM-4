@@ -1,14 +1,14 @@
 import { createBrowserRouter } from 'react-router';
 import { lazy } from 'react';
-import AuthLayout from '@/pages/Auth/AuthLayout';
+import AuthLayout from '@/common/components/AuthLayout';
 
 const Root = lazy(() => import('@/pages'));
 const Home = lazy(() => import('@/pages/Home'));
 const Tarot = lazy(() => import('@/pages/Tarot'));
 const Community = lazy(() => import('@/pages/Community'));
 const Mypage = lazy(() => import('@/pages/Mypage'));
-const Login = lazy(() => import('@/pages/Auth/Login'));
-const Register = lazy(() => import('@/pages/Auth/Register'));
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 export const routes = createBrowserRouter([
