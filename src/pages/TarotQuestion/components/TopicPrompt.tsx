@@ -1,10 +1,10 @@
-import LikeIcon from '@/assets/icons/liked.svg';
-import SubmitIcon from '@/assets/icons/submit.svg';
-import WorkIcon from '@/assets/icons/work.svg';
-import StudyIcon from '@/assets/icons/study.svg';
-import MoneyIcon from '@/assets/icons/money.svg';
-import HealthIcon from '@/assets/icons/health.svg';
-import QuestionIcon from '@/assets/icons/question.svg';
+import LikeIcon from '/icons/liked.svg';
+import SubmitIcon from '/icons/submit.svg';
+import WorkIcon from '/icons/work.svg';
+import StudyIcon from '/icons/study.svg';
+import MoneyIcon from '/icons/money.svg';
+import HealthIcon from '/icons/health.svg';
+import QuestionIcon from '/icons/question.svg';
 
 import { TOPIC_LABEL, type TopicLabel } from '@/pages/TarotQuestion/constants/topic';
 
