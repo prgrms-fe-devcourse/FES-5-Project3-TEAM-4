@@ -10,6 +10,7 @@ const Mypage = lazy(() => import('@/pages/Mypage'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
+const LoginCallBack = lazy(() => import('@/pages/Login/components/OAuthCallback'));
 
 export const routes = createBrowserRouter([
   {
@@ -76,6 +77,11 @@ export const routes = createBrowserRouter([
             // const email = formData.get("email") as string;
             // TODO: supabase 통신
             // },
+          },
+          {
+            path: 'callback',
+            Component: LoginCallBack,
+            handle: { label: 'OAuth', showInNav: false },
           },
         ],
       },
