@@ -1,12 +1,16 @@
 import EmailField from '@/common/components/EmailField';
 import PasswordField from '@/common/components/PasswordField';
+import { useState } from 'react';
 
 function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
   return (
     <form className="flex flex-col gap-2">
       <div className="flex flex-col gap-5 pt-8">
-        <EmailField />
-        <PasswordField />
+        <EmailField onChange={(email: string) => setEmail(email)} />
+        <PasswordField onChange={(email: string) => setPassword(email)} />
       </div>
       <div className="flex justify-between text-main-white text-xs mb-4">
         <a href="#">Register</a>
