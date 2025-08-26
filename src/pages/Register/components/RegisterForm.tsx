@@ -4,7 +4,7 @@ import AuthValidate from '@/common/components/AuthValidate';
 import EmailField from '@/common/components/EmailField';
 import PasswordField from '@/common/components/PasswordField';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 function RegisterForm() {
   const [email, setEmail] = useState('');
@@ -23,11 +23,14 @@ function RegisterForm() {
     if (registUserInfo && registUserInfo.id) {
       const res = await insertProfile(registUserInfo.id);
       if (res.ok) {
+        alert('회원가입 성공');
         navigate('/auth/login');
       } else {
+        alert('회원가입 실패');
         console.error('회원가입 중 오류가 발생하였습니다.');
       }
     } else {
+      alert('회원가입 실패');
       console.error('회원가입 중 오류가 발생하였습니다.');
     }
   };
@@ -40,6 +43,9 @@ function RegisterForm() {
         <div>
           <PasswordField onChange={(email: string) => setPasswordConfirm(email)} />
           <AuthValidate validateText={validation} />
+          <Link className="text-main-white" to={'/auth/login'}>
+            Sign In
+          </Link>
         </div>
       </div>
       <button

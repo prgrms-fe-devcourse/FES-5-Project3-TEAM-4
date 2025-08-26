@@ -1,4 +1,10 @@
+import NightStarBackGround from './components/NightStarBackGround';
+
 function Home() {
-  return <h1>Main Page</h1>;
+  return (
+    <div>
+      <NightStarBackGround />
+    </div>
+  );
 }
 export default Home;
