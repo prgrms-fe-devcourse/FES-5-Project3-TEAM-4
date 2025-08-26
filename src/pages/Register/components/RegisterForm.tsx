@@ -3,12 +3,14 @@ import AuthValidate from '@/common/components/AuthValidate';
 import EmailField from '@/common/components/EmailField';
 import PasswordField from '@/common/components/PasswordField';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [validation, setValidation] = useState('');
+  const navigate = useNavigate();
 
   const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,6 +19,7 @@ function RegisterForm() {
       return;
     }
     registUser(email, password);
+    navigate('/auth/login');
   };
 
   return (
