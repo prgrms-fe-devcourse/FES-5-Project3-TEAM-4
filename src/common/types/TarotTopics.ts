@@ -1,4 +1,3 @@
-// constants/topic.ts
 export const TOPIC_LABEL = {
   LOVE: '연애 | 관계',
   MONEY: '금전 | 재물',

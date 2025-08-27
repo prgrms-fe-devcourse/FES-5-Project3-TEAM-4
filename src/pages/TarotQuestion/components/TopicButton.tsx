@@ -1,4 +1,4 @@
-import type { TopicLabel } from '../constants/topic';
+import type { TopicLabel } from '@/common/types/TarotTopics';
 
 type TopicButtonProps = {
   topic: TopicLabel;
@@ -26,10 +26,10 @@ export default function TopicButton(props: TopicButtonProps) {
         'hover:shadow-[0_0_12px_#ffffff] hover:-translate-y-0.5 hover:bg-white/5',
         selected
           ? [
-              'text-white border-white',
+              'text-main-white border-main-white',
               'bg-[linear-gradient(90deg,#0E0724_6.73%,rgba(96,24,67,0.81)_55.29%,rgba(159,38,91,0.67)_77.4%,rgba(235,54,120,0.50)_100%)]',
             ].join(' ')
-          : ['text-white/90 border-white/40 bg-transparent'].join(' '),
+          : ['text-main-white/90 border-main-white/40 bg-transparent'].join(' '),
         className,
       ].join(' ')}
     >

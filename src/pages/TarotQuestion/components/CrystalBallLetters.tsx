@@ -1,27 +1,46 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import sphereOverlay from '@/assets/crystal_sphere_overlay.svg';
 import sphereMask from '@/assets/crystal_sphere_mask.svg';
-
-type TopicKey = 'LOVE' | 'MONEY' | 'CAREER' | 'HEALTH' | 'GROWTH';
+import { type TopicKey } from '@/common/types/TarotTopics';
 
 type Props = {
   selectedKey: TopicKey | null;
   size?: number;
   rimPadding?: number;
+  className?: string;
 };
 
-export default function CrystalBallLetters({ selectedKey, size = 400, rimPadding = 60 }: Props) {
+type NumSetter = (v: number) => void;
+
+export default function CrystalBallLetters({
+  selectedKey,
+  size = 400,
+  rimPadding = 60,
+  className = '',
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const maskRef = useRef<HTMLDivElement>(null);
 
+  const [boxSize, setBoxSize] = useState<number>(size);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0].contentRect.width;
+      if (w > 0) setBoxSize(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const letters = useMemo(() => (selectedKey ? selectedKey.split('') : []), [selectedKey]);
-  const clipRadius = size / 2 - 2;
 
   useEffect(() => {
     if (!containerRef.current || !maskRef.current) return;
 
-    const R = size / 2 - rimPadding;
+    const R = boxSize / 2 - rimPadding;
     const baseScaleByCount = (len: number) => (len <= 4 ? 1.1 : len >= 6 ? 0.9 : 1);
     const k = 1.0;
     const safeR = R - 2;
@@ -37,12 +56,12 @@ export default function CrystalBallLetters({ selectedKey, size = 400, rimPadding
 
       const baseScaleMap = new WeakMap<HTMLSpanElement, number>();
       const curScaleMap = new WeakMap<HTMLSpanElement, number>();
-      const setScaleXMap = new WeakMap<HTMLSpanElement, (v: number) => void>();
-      const setScaleYMap = new WeakMap<HTMLSpanElement, (v: number) => void>();
-      const posMap = new WeakMap<HTMLSpanElement, { x: number; y: number }>();
-      const velMap = new WeakMap<HTMLSpanElement, { vx: number; vy: number }>();
-      const setXMap = new WeakMap<HTMLSpanElement, (v: number) => void>();
-      const setYMap = new WeakMap<HTMLSpanElement, (v: number) => void>();
+      const setScaleXMap = new WeakMap<HTMLSpanElement, NumSetter>();
+      const setScaleYMap = new WeakMap<HTMLSpanElement, NumSetter>();
+      const positionMap = new WeakMap<HTMLSpanElement, { x: number; y: number }>();
+      const velocityMap = new WeakMap<HTMLSpanElement, { vx: number; vy: number }>();
+      const setXMap = new WeakMap<HTMLSpanElement, NumSetter>();
+      const setYMap = new WeakMap<HTMLSpanElement, NumSetter>();
 
       gsap.fromTo(
         items,
@@ -50,24 +69,24 @@ export default function CrystalBallLetters({ selectedKey, size = 400, rimPadding
         { autoAlpha: 1, scale: 1, duration: 0.6, stagger: 0.05, ease: 'power1.out' }
       );
 
-      items.forEach((el) => {
+      items.forEach((item) => {
         const start = randPointInCircle(safeR);
         const base = baseScaleByCount(letters.length);
 
-        baseScaleMap.set(el, base);
-        curScaleMap.set(el, base);
+        baseScaleMap.set(item, base);
+        curScaleMap.set(item, base);
 
-        setScaleXMap.set(el, gsap.quickSetter(el, 'scaleX') as (v: number) => void);
-        setScaleYMap.set(el, gsap.quickSetter(el, 'scaleY') as (v: number) => void);
-        setXMap.set(el, gsap.quickSetter(el, 'x', 'px') as (v: number) => void);
-        setYMap.set(el, gsap.quickSetter(el, 'y', 'px') as (v: number) => void);
-        posMap.set(el, { x: start.x, y: start.y });
+        setScaleXMap.set(item, gsap.quickSetter(item, 'scaleX') as NumSetter);
+        setScaleYMap.set(item, gsap.quickSetter(item, 'scaleY') as NumSetter);
+        setXMap.set(item, gsap.quickSetter(item, 'x', 'px') as NumSetter);
+        setYMap.set(item, gsap.quickSetter(item, 'y', 'px') as NumSetter);
+        positionMap.set(item, { x: start.x, y: start.y });
 
         const ang = Math.random() * Math.PI * 2;
         const speed = gsap.utils.random(40, 80);
-        velMap.set(el, { vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed });
+        velocityMap.set(item, { vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed });
 
-        gsap.set(el, {
+        gsap.set(item, {
           xPercent: -50,
           yPercent: -50,
           x: start.x,
@@ -88,47 +107,47 @@ export default function CrystalBallLetters({ selectedKey, size = 400, rimPadding
         const dr = gsap.ticker.deltaRatio(60);
         const dt = dr / 60;
 
-        items.forEach((el) => {
-          const p = posMap.get(el)!;
-          const v = velMap.get(el)!;
-          const setX = setXMap.get(el)!;
-          const setY = setYMap.get(el)!;
+        items.forEach((item) => {
+          const position = positionMap.get(item)!;
+          const velocity = velocityMap.get(item)!;
+          const setX = setXMap.get(item)!;
+          const setY = setYMap.get(item)!;
 
-          p.x += v.vx * dt;
-          p.y += v.vy * dt;
+          position.x += velocity.vx * dt;
+          position.y += velocity.vy * dt;
 
-          const dist = Math.hypot(p.x, p.y);
+          const dist = Math.hypot(position.x, position.y);
           if (dist > safeR) {
-            const nx = p.x / dist;
-            const ny = p.y / dist;
-            const dot = v.vx * nx + v.vy * ny;
-            v.vx = v.vx - 2 * dot * nx;
-            v.vy = v.vy - 2 * dot * ny;
-            p.x = nx * safeR - nx * 0.5;
-            p.y = ny * safeR - ny * 0.5;
+            const nx = position.x / dist;
+            const ny = position.y / dist;
+            const dot = velocity.vx * nx + velocity.vy * ny;
+            velocity.vx = velocity.vx - 2 * dot * nx;
+            velocity.vy = velocity.vy - 2 * dot * ny;
+            position.x = nx * safeR - nx * 0.5;
+            position.y = ny * safeR - ny * 0.5;
           }
 
           const wobble = 0.6;
           const ang = (Math.random() - 0.5) * wobble * dt;
           const cos = Math.cos(ang);
           const sin = Math.sin(ang);
-          const vx = v.vx * cos - v.vy * sin;
-          const vy = v.vx * sin + v.vy * cos;
-          v.vx = vx;
-          v.vy = vy;
+          const vx = velocity.vx * cos - velocity.vy * sin;
+          const vy = velocity.vx * sin + velocity.vy * cos;
+          velocity.vx = vx;
+          velocity.vy = vy;
 
-          setX(p.x);
-          setY(p.y);
+          setX(position.x);
+          setY(position.y);
 
-          const t = 1 - Math.min(Math.hypot(p.x, p.y) / R, 1);
-          const base = baseScaleMap.get(el) ?? 1;
+          const t = 1 - Math.min(Math.hypot(position.x, position.y) / R, 1);
+          const base = baseScaleMap.get(item) ?? 1;
           const target = base * (1 + k * t);
-          const cur = curScaleMap.get(el) ?? base;
+          const cur = curScaleMap.get(item) ?? base;
           const next = cur + (target - cur) * smooth;
-          curScaleMap.set(el, next);
+          curScaleMap.set(item, next);
 
-          const setScaleX = setScaleXMap.get(el);
-          const setScaleY = setScaleYMap.get(el);
+          const setScaleX = setScaleXMap.get(item);
+          const setScaleY = setScaleYMap.get(item);
           setScaleX?.(next);
           setScaleY?.(next);
         });
@@ -139,17 +158,18 @@ export default function CrystalBallLetters({ selectedKey, size = 400, rimPadding
     }, containerRef);
 
     return () => ctx.revert();
-  }, [letters, size, rimPadding]);
+  }, [letters, boxSize, rimPadding]);
 
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center justify-center"
-      style={{ width: size, height: size }}
+      className={['relative flex items-center justify-center aspect-square w-full', className].join(
+        ' '
+      )}
     >
       <div
         ref={maskRef}
-        className="absolute inset-0 flex items-center justify-center rounded-full overflow-hidden"
+        className="absolute inset-0 flex items-center justify-center overflow-hidden"
         style={{
           WebkitMaskImage: `url(${sphereMask})`,
           maskImage: `url(${sphereMask})`,
@@ -159,19 +179,19 @@ export default function CrystalBallLetters({ selectedKey, size = 400, rimPadding
           maskPosition: 'center',
           WebkitMaskSize: '100% 100%',
           maskSize: '100% 100%',
-          clipPath: `circle(${clipRadius}px at 50% 50%)`,
+          clipPath: `circle(${boxSize / 2 - 2}px at 50% 50%)`,
         }}
       >
         {letters.map((ch, i) => (
           <span
             key={`${ch}-${i}`}
-            className="letter-particle absolute font-bold tracking-wide select-none"
+            className="letter-particle absolute font-bold select-none"
             style={{
               top: '50%',
               left: '50%',
               color: 'rgba(255,255,255,0.95)',
               textShadow: '0 0 8px rgba(147,197,253,0.85), 0 0 16px rgba(59,130,246,0.6)',
-              fontSize: Math.max(14, Math.min(size * 0.12, 48)),
+              fontSize: Math.max(14, Math.min(boxSize * 0.12, 48)),
               lineHeight: 1,
               whiteSpace: 'nowrap',
               willChange: 'transform',
@@ -185,7 +205,7 @@ export default function CrystalBallLetters({ selectedKey, size = 400, rimPadding
       <img
         src={sphereOverlay}
         alt=""
-        className="absolute inset-0 w-full h-full pointer-events-none select-none"
+        className="absolute inset-0 pointer-events-none select-none w-full h-full"
         draggable={false}
       />
     </div>
