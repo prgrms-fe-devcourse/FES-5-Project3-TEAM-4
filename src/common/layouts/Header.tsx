@@ -6,7 +6,7 @@ export default function Header() {
   const navList = extractNavItem(routes.routes);
 
   return (
-    <header className="sticky top-0 z-50 bg-[rgba(31,11,54,0.44)] text-main-white backdrop-blur-sm">
+    <header className="fixed inset-x-0 top-0 z-50 bg-[rgba(31,11,54,0.44)] text-main-white backdrop-blur-sm">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:bg-main-white focus:text-black focus:px-3 focus:py-2 focus:rounded"
