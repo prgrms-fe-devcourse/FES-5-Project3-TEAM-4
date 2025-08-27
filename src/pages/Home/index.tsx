@@ -7,7 +7,7 @@ function Home() {
       <section id="container" className="absolute z-1 w-full">
         <Section01 />
       </section>
-      <NightStarBackGround className="fixed" />
+      <NightStarBackGround sizeX="100vw" sizeY="100vh" className="fixed" />
     </>
   );
 }
