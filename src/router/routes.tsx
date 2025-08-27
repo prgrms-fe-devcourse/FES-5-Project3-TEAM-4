@@ -10,6 +10,10 @@ const Mypage = lazy(() => import('@/pages/Mypage'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
+const Management = lazy(() => import('@/pages/Mypage/components/Management'));
+const Post = lazy(() => import('@/pages/Mypage/components/Post'));
+const Likes = lazy(() => import('@/pages/Mypage/components/Likes'));
+const Record = lazy(() => import('@/pages/Mypage/components/Record'));
 
 export const routes = createBrowserRouter([
   {
@@ -39,14 +43,27 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'mypage',
-        Component: () => <Mypage />,
+        Component: Mypage,
         handle: { label: 'Mypage', showInNav: true },
-        loader: async () => {
-          // ex)
-          // const { data } = await supabase.from("테이블명").select("*");
-          // return data;
-          return true;
-        },
+        children: [
+          {
+            index: true,
+            path: 'management',
+            Component: Management,
+          },
+          {
+            path: 'post',
+            Component: Post,
+          },
+          {
+            path: 'likes',
+            Component: Likes,
+          },
+          {
+            path: 'record',
+            Component: Record,
+          },
+        ],
       },
 
       {
