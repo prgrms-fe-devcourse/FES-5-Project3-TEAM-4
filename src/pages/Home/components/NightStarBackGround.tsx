@@ -1,5 +1,5 @@
 import { getRandom } from '@/common/utils/getRandom';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Meteor from './Meteor';
 import tw from '@/common/utils/tw';
 
@@ -16,10 +16,7 @@ interface Prop {
   showMeteor?: boolean;
 }
 
-function NightStarBackGround({
-  className = 'bg-linear-180 from-indigo-950 from-65% to-blue-800',
-  showMeteor = true,
-}: Prop) {
+function NightStarBackGround({ className, showMeteor = true }: Prop) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const starListRef = useRef<Star[]>([]);
   const rAFRef = useRef<number>(0);
@@ -79,7 +76,13 @@ function NightStarBackGround({
   return (
     <div className="w-screen h-screen relative">
       {showMeteor && <Meteor />}
-      <canvas ref={canvasRef} className={tw('w-full h-full -z-1', className)} />
+      <canvas
+        ref={canvasRef}
+        className={tw(
+          'w-full h-full -z-1 bg-linear-180 from-indigo-950 from-65% to-blue-800',
+          className
+        )}
+      />
     </div>
   );
 }
