@@ -6,9 +6,19 @@ import CrystalBallStage from './components/CrystalBallStage';
 import CrystalSphere from '@/assets/Tarot/crystal_sphere.png';
 import QuestionExamples from './components/QuestionExamples';
 
-export default function TarotQuestion() {
-  const [selectedTopic, setSelectedTopic] = useState<TopicLabel | null>(null);
-  const [pickedQuestion, setPickedQuestion] = useState<string>('');
+type Props = {
+  onSubmitQuestion: (value: string, topic: TopicLabel | null) => void;
+  presetQuestion?: string;
+  selectedTopicInitial?: TopicLabel | null;
+};
+
+export default function TarotQuestion({
+  onSubmitQuestion,
+  presetQuestion = '',
+  selectedTopicInitial = null,
+}: Props) {
+  const [selectedTopic, setSelectedTopic] = useState<TopicLabel | null>(selectedTopicInitial);
+  const [pickedQuestion, setPickedQuestion] = useState<string>(presetQuestion);
 
   return (
     <div className="mx-auto w-full md:max-w-screen-md lg:max-w-screen-lg px-4 md:px-5 lg:px-6 space-y-3 lg:space-y-4 pb-2 md:pb-3 lg:pb-4">
@@ -60,7 +70,11 @@ export default function TarotQuestion() {
           lg:max-w-[min(92vw,720px)]
         "
       >
-        <TopicPrompt selectedTopic={selectedTopic} presetValue={pickedQuestion} />
+        <TopicPrompt
+          selectedTopic={selectedTopic}
+          presetValue={pickedQuestion}
+          onSubmit={(val, topic) => onSubmitQuestion(val, topic)}
+        />
       </section>
 
       <section
