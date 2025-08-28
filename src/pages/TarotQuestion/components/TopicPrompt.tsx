@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import LikeIcon from '/icons/liked.svg';
-import SubmitIcon from '/icons/submit.svg';
-import WorkIcon from '/icons/work.svg';
-import StudyIcon from '/icons/study.svg';
-import MoneyIcon from '/icons/money.svg';
-import HealthIcon from '/icons/health.svg';
-import QuestionIcon from '/icons/question.svg';
+import LikeIcon from '@/assets/Tarot/icons/liked.svg';
+import SubmitIcon from '@/assets/Tarot/icons/submit.svg';
+import WorkIcon from '@/assets/Tarot/icons/work.svg';
+import StudyIcon from '@/assets/Tarot/icons/study.svg';
+import MoneyIcon from '@/assets/Tarot/icons/money.svg';
+import HealthIcon from '@/assets/Tarot/icons/health.svg';
+import QuestionIcon from '@/assets/Tarot/icons/question.svg';
 import { TOPIC_LABEL, type TopicLabel } from '@/common/types/TarotTopics';
 
 type TopicPromptProps = {

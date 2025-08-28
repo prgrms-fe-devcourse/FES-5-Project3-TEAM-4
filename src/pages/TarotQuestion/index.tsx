@@ -3,7 +3,7 @@ import TopicButton from './components/TopicButton';
 import TopicPrompt from './components/TopicPrompt';
 import { TOPIC_LABEL_LIST, type TopicLabel } from '@/common/types/TarotTopics';
 import CrystalBallStage from './components/CrystalBallStage';
-import CrystalSphere from '@/assets/crystal_sphere.png';
+import CrystalSphere from '@/assets/Tarot/crystal_sphere.png';
 import QuestionExamples from './components/QuestionExamples';
 
 export default function TarotQuestion() {
