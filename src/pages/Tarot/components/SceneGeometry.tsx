@@ -8,6 +8,8 @@ import {
   DoubleSide,
 } from 'three';
 
+type Vec3 = [number, number, number];
+
 function useSRGBTexture(url: string) {
   const tex = useLoader(TextureLoader, url);
   const { gl } = useThree();
@@ -36,12 +38,19 @@ function useSRGBClampTexture(url: string) {
   return tex;
 }
 
+type WallProps = {
+  url: string;
+  height?: number;
+  position?: Vec3;
+  rotation?: Vec3;
+};
+
 function Wall({
   url,
   height = 8,
   position = [0, 4, -8] as [number, number, number],
   rotation = [0, 0, 0] as [number, number, number],
-}) {
+}: WallProps) {
   const tex = useSRGBTexture(url);
   const [size, setSize] = useState<[number, number] | null>(null);
 
@@ -62,13 +71,21 @@ function Wall({
   );
 }
 
+type TableTopProps = {
+  url: string;
+  depth?: number;
+  y?: number;
+  position?: Vec3;
+  rotation?: Vec3;
+};
+
 function TableTop({
   url,
   depth = 4,
   y = 1.1,
   position = [0, 0, 0] as [number, number, number],
   rotation = [-Math.PI / 2, 0, 0] as [number, number, number],
-}) {
+}: TableTopProps) {
   const tex = useSRGBClampTexture(url);
   const [size, setSize] = useState<[number, number] | null>(null);
 
