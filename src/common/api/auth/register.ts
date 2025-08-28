@@ -1,3 +1,4 @@
+import { showAlert } from '@/common/utils/sweetalert';
 import supabase from '../supabase/supabase';
 /**
  * 회원가입 함수
@@ -15,11 +16,15 @@ export async function registUser(email: string, password: string) {
       password,
     });
     if (signUpError || !user) {
-      console.error('회원가입 실패!', signUpError?.message);
+      showAlert('error', '회원가입 실패', signUpError?.message);
       return;
     }
     return user;
   } catch (error) {
-    console.error('회원가입에러', error);
+    if (error instanceof Error) {
+      showAlert('error', '회원가입 실패', error.message);
+    } else if (typeof error === 'string') {
+      showAlert('error', '회원가입 실패', error);
+    }
   }
 }
