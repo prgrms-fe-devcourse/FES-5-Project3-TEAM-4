@@ -12,12 +12,16 @@ type Star = {
 };
 
 interface Prop {
+  sizeX?: string;
+  sizeY?: string;
   className?: string;
   showMeteor?: boolean;
 }
 
 function NightStarBackGround({
-  className = 'bg-linear-180 from-indigo-950 from-65% to-blue-800',
+  sizeX = '100%',
+  sizeY = '100%',
+  className,
   showMeteor = true,
 }: Prop) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -77,9 +81,15 @@ function NightStarBackGround({
   }, []);
 
   return (
-    <div className="w-screen h-screen relative">
+    <div className="relative" style={{ width: sizeX, height: sizeY }}>
       {showMeteor && <Meteor />}
-      <canvas ref={canvasRef} className={tw('w-full h-full -z-1', className)} />
+      <canvas
+        ref={canvasRef}
+        className={tw(
+          'w-full h-full -z-1 bg-linear-180 from-indigo-950 from-65% to-blue-800 pointer-events-none',
+          className
+        )}
+      />
     </div>
   );
 }
