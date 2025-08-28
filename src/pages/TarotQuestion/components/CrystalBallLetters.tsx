@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-import sphereOverlay from '@/assets/crystal_sphere_overlay.svg';
-import sphereMask from '@/assets/crystal_sphere_mask.svg';
+import sphereOverlay from '@/assets/Tarot/crystal_sphere_overlay.svg';
+import sphereMask from '@/assets/Tarot/crystal_sphere_mask.svg';
 import { type TopicKey } from '@/common/types/TarotTopics';
 
 type Props = {
