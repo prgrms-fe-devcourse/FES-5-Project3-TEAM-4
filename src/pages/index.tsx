@@ -1,21 +1,17 @@
+import Footer from '@/common/layouts/Footer';
+import Header from '@/common/layouts/Header';
 import { Outlet } from 'react-router';
 
 function Root() {
   return (
     <div>
-      <header>
-        {/* TODO: haeder component 넣기 */}
-        <h1>header</h1>
-      </header>
+      <Header />
 
       <main>
         <Outlet></Outlet>
       </main>
 
-      <footer>
-        {/* TODO: footer component 넣기 */}
-        <small> &copy; 2025 CTA </small>
-      </footer>
+      <Footer />
     </div>
   );
 }
