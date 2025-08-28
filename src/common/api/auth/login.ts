@@ -1,4 +1,4 @@
-import { useAuth } from '@/common/store/authStore';
+import { showAlert } from '@/common/utils/sweetalert';
 import supabase from '../supabase/supabase';
 import type { Provider } from '@supabase/supabase-js';
 
@@ -8,38 +8,51 @@ export async function login(email: string, password: string) {
       email,
       password,
     });
+
     if (loginError) {
-      console.error('로그인 실패!', loginError.message);
+      showAlert('error', '로그인 실패', loginError.message);
       return;
     }
     if (data) {
       return data.user;
     }
   } catch (error) {
-    console.error('로그인 중 에러 발생', error);
-    return;
+    if (error instanceof Error) {
+      showAlert('error', '로그인 실패', error.message);
+    } else if (typeof error === 'string') {
+      showAlert('error', '로그인 실패', error);
+    }
   }
 }
 
 export async function loginWithOAuth(provider: Provider) {
-  await supabase.auth.signInWithOAuth({
-    provider: provider,
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback?provider=${provider}`,
-      scopes: 'openid email profile',
-      // refresh token이 필요하면:
-      queryParams: { access_type: 'offline', prompt: 'consent' },
-    },
-  });
+  try {
+    await supabase.auth.signInWithOAuth({
+      provider: provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?provider=${provider}`,
+        scopes: 'openid email profile',
+        // refresh token이 필요하면:
+        queryParams: { access_type: 'offline', prompt: 'consent' },
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      showAlert('error', `${provider} 로그인 요청 실패`, error.message);
+    } else if (typeof error === 'string') {
+      showAlert('error', `${provider} 로그인 요청 실패`, error);
+    }
+  }
 }
 
 export async function logout() {
   try {
-    const reset = useAuth((state) => state.reset);
-
-    await supabase.auth.signOut();
-    reset();
+    await supabase.auth.signOut({ scope: 'global' });
   } catch (error) {
-    console.error('로그아웃 에러');
+    if (error instanceof Error) {
+      showAlert('error', '로그아웃 실패', error.message);
+    } else if (typeof error === 'string') {
+      showAlert('error', '로그아웃 실패', error);
+    }
   }
 }

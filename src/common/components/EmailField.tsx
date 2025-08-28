@@ -16,6 +16,7 @@ function EmailField({ onChange }: Props) {
         placeholder="Email"
         name="email"
         id="email"
+        required
         onInput={handleInput}
       />
     </label>

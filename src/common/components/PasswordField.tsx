@@ -29,6 +29,7 @@ function PasswordField({ onChange, className, placeholder = 'Password' }: Props)
           name={inputId}
           id={inputId}
           onInput={handleInput}
+          required
         />
 
         <button type="button" className="w-4 cursor-pointer" onClick={handleShowHide}>

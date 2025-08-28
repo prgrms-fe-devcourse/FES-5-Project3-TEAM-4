@@ -3,6 +3,7 @@ import { insertProfile } from '@/common/api/Profile/profile';
 import AuthValidate from '@/common/components/AuthValidate';
 import EmailField from '@/common/components/EmailField';
 import PasswordField from '@/common/components/PasswordField';
+import { showAlert } from '@/common/utils/sweetalert';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
@@ -23,15 +24,9 @@ function RegisterForm() {
     if (registUserInfo && registUserInfo.id) {
       const res = await insertProfile(registUserInfo.id);
       if (res.ok) {
-        alert('회원가입 성공');
+        showAlert('success', '회원가입되었습니다.');
         navigate('/auth/login');
-      } else {
-        alert('회원가입 실패');
-        console.error('회원가입 중 오류가 발생하였습니다.');
       }
-    } else {
-      alert('회원가입 실패');
-      console.error('회원가입 중 오류가 발생하였습니다.');
     }
   };
 
@@ -48,12 +43,15 @@ function RegisterForm() {
           </Link>
         </div>
       </div>
-      <button
-        type="submit"
-        className="text-center w-83 h-8 text-main-white border rounded-2xl cursor-pointer text-l border-main-white hover:text-main-black hover:bg-main-white"
-      >
-        Sign Up
-      </button>
+      <div className="flex flex-col items-center">
+        <button
+          type="submit"
+          className="text-center font-semibold w-83 h-8 text-main-white border rounded-2xl cursor-pointer text-l border-main-white hover:text-main-black hover:bg-main-white"
+        >
+          Sign Up
+        </button>
+        <p className="text-gray-400 text-xs pt-4">유효한 이메일로 회원가입 해주세요</p>
+      </div>
     </form>
   );
 }

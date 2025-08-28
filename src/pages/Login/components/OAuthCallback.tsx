@@ -10,7 +10,6 @@ function OAuthCallback() {
     useShallow((state) => ({
       setUserInfo: state.setUserInfo,
       reset: state.reset,
-      userInfo: state.userInfo,
     }))
   );
   const navigate = useNavigate();

@@ -1,9 +1,28 @@
 import { Link } from 'react-router-dom';
 import extractNavItem from '../utils/extractNavItem';
 import { routes } from '@/router/routes';
+import { useAuth } from '../store/authStore';
+import { useShallow } from 'zustand/shallow';
+import { logout } from '../api/auth/login';
+import { showAlert, showConfirmAlert } from '../utils/sweetalert';
 
 export default function Header() {
   const navList = extractNavItem(routes.routes);
+
+  const { userInfo, reset } = useAuth(
+    useShallow((state) => ({
+      userInfo: state.userInfo,
+      reset: state.reset,
+    }))
+  );
+
+  const handleLogout = () => {
+    showConfirmAlert('로그아웃 하시겠습니까?', '', () => {
+      reset();
+      logout();
+      showAlert('info', '로그아웃되었습니다.');
+    });
+  };
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-[rgba(31,11,54,0.44)] text-main-white backdrop-blur-sm">
@@ -63,12 +82,22 @@ export default function Header() {
         </Link>
 
         {/* TODO: auth 상태에 따라 로그인 /로그아웃 컴포넌트 연결 */}
-        <button
-          type="button"
-          className="px-4 py-2 rounded-lg cursor-pointer bg-main-white/20 hover:bg-main-white/30 text-sm"
-        >
-          로그인
-        </button>
+        {userInfo.userId === '' && (
+          <Link
+            to={'/auth/login'}
+            className="px-4 py-2 rounded-lg cursor-pointer bg-main-white/20 hover:bg-main-white/30 text-sm"
+          >
+            로그인
+          </Link>
+        )}
+        {userInfo.userId !== '' && (
+          <a
+            className="px-4 py-2 rounded-lg cursor-pointer bg-main-white/20 hover:bg-main-white/30 text-sm"
+            onClick={handleLogout}
+          >
+            로그아웃
+          </a>
+        )}
       </div>
     </header>
   );
