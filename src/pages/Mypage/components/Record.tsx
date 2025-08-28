@@ -3,10 +3,10 @@ import RecordItem from './RecordItem';
 
 function Record() {
   return (
-    <>
+    <section className=" w-[750px] h-[85vh] flex flex-col gap-5 pt-10">
       <h1 className="text-main-white pt-14 text-2xl font-semibold">Record</h1>
-      <div className="w-[750px] h-[100%] relative">
-        <div className="w-[100%] h-[100%]  rounded-[20px] p-4 absolute z-30">
+      <div className="w-[750px] h-[800px] relative">
+        <div className="w-[100%] h-[800px]  rounded-[20px] p-4 absolute z-30">
           <img src="/icons/boy3.svg" className="absolute" alt="달에서 낚시하는 소년 이미지" />
           <div className="flex flex-col gap-20">
             <div className="ml-[152px]">
@@ -21,7 +21,7 @@ function Record() {
         </div>
         <NightStarBackGround className="bg-linear-160 from-[#180018] from-20% via-[#010001] to-[#180018] to-80% rounded-2xl" />
       </div>
-    </>
+    </section>
   );
 }
 export default Record;

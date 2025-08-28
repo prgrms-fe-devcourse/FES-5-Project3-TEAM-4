@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 import { lazy } from 'react';
 import AuthLayout from '@/common/components/AuthLayout';
 import { FiFileText, FiHome, FiUsers } from 'react-icons/fi';
@@ -55,8 +55,8 @@ export const routes = createBrowserRouter([
           return true;
         },
         children: [
+          { index: true, element: <Navigate to="management" /> },
           {
-            index: true,
             path: 'management',
             Component: Management,
           },

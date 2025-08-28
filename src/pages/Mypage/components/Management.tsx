@@ -3,9 +3,9 @@ import PasswordField from '@/common/components/PasswordField';
 
 function Management() {
   return (
-    <>
+    <section className=" w-[750px] h-[85vh] flex flex-col gap-5 pt-10">
       <h1 className="text-main-white pt-14 text-2xl font-semibold">Management</h1>
-      <div className="w-[490px] h-[410px] border border-main-black rounded-lg bg-[#151228]">
+      <div className="w-[490px] h-[55%] border border-main-black rounded-lg bg-[#151228]">
         <div className="flex flex-col items-center pt-10">
           <div className="mb-8">
             <span className="text-main-white">현재 비밀번호</span>
@@ -40,7 +40,7 @@ function Management() {
           </div>
         </div>
       </div>
-    </>
+    </section>
   );
 }
 export default Management;
