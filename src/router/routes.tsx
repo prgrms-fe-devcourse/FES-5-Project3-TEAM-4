@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 import { lazy } from 'react';
 import AuthLayout from '@/common/components/AuthLayout';
 import { FiFileText, FiHome, FiUsers } from 'react-icons/fi';
@@ -13,6 +13,10 @@ const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const LoginCallBack = lazy(() => import('@/pages/Login/components/OAuthCallback'));
+const Management = lazy(() => import('@/pages/Mypage/components/Management'));
+const Post = lazy(() => import('@/pages/Mypage/components/Post'));
+const Likes = lazy(() => import('@/pages/Mypage/components/Likes'));
+const Record = lazy(() => import('@/pages/Mypage/components/Record'));
 
 export const routes = createBrowserRouter([
   {
@@ -42,14 +46,33 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'mypage',
-        Component: () => <Mypage />,
         handle: { label: 'Mypage', showInNav: true, icon: FiFileText },
+        Component: Mypage,
         loader: async () => {
           // ex)
           // const { data } = await supabase.from("테이블명").select("*");
           // return data;
           return true;
         },
+        children: [
+          { index: true, element: <Navigate to="management" /> },
+          {
+            path: 'management',
+            Component: Management,
+          },
+          {
+            path: 'post',
+            Component: Post,
+          },
+          {
+            path: 'likes',
+            Component: Likes,
+          },
+          {
+            path: 'record',
+            Component: Record,
+          },
+        ],
       },
 
       {
