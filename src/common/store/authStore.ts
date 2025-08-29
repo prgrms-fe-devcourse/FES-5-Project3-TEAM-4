@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 //UserInfo 타입 정의
 interface UserInfo {
@@ -18,8 +19,15 @@ type AuthState = {
   reset: () => void;
 };
 
-export const useAuth = create<AuthState>()((set, _get, store) => ({
-  userInfo: USER_ID_INIT,
-  setUserInfo: (userInfo) => set({ userInfo }),
-  reset: () => set(store.getInitialState()),
-}));
+export const useAuth = create<AuthState>()(
+  persist(
+    (set, _get, store) => ({
+      userInfo: USER_ID_INIT,
+      setUserInfo: (userInfo) => set({ userInfo }),
+      reset: () => set(store.getInitialState()),
+    }),
+    {
+      name: 'user-storage',
+    }
+  )
+);

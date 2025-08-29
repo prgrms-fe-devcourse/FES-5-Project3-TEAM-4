@@ -8,6 +8,195 @@ export type Database = {
   };
   public: {
     Tables: {
+      card: {
+        Row: {
+          arcana: string;
+          image_url: string;
+          name: string;
+        };
+        Insert: {
+          arcana: string;
+          image_url: string;
+          name: string;
+        };
+        Update: {
+          arcana?: string;
+          image_url?: string;
+          name?: string;
+        };
+        Relationships: [];
+      };
+      comment: {
+        Row: {
+          community_id: string;
+          contents: string | null;
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean;
+          parent_id: string | null;
+          profile_id: string;
+        };
+        Insert: {
+          community_id: string;
+          contents?: string | null;
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean;
+          parent_id?: string | null;
+          profile_id: string;
+        };
+        Update: {
+          community_id?: string;
+          contents?: string | null;
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean;
+          parent_id?: string | null;
+          profile_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'comment_community_id_fkey';
+            columns: ['community_id'];
+            isOneToOne: false;
+            referencedRelation: 'community';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'comment_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'comment';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'comment_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      community: {
+        Row: {
+          contents: string | null;
+          created_at: string | null;
+          file_urls: string[] | null;
+          id: string;
+          likes: number | null;
+          profile_id: string;
+          tarot_id: string | null;
+          title: string | null;
+        };
+        Insert: {
+          contents?: string | null;
+          created_at?: string | null;
+          file_urls?: string[] | null;
+          id?: string;
+          likes?: number | null;
+          profile_id: string;
+          tarot_id?: string | null;
+          title?: string | null;
+        };
+        Update: {
+          contents?: string | null;
+          created_at?: string | null;
+          file_urls?: string[] | null;
+          id?: string;
+          likes?: number | null;
+          profile_id?: string;
+          tarot_id?: string | null;
+          title?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'community_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'community_tarot_id_fkey';
+            columns: ['tarot_id'];
+            isOneToOne: false;
+            referencedRelation: 'tarot';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      likes: {
+        Row: {
+          community_id: string;
+          created_at: string | null;
+          id: string;
+          profile_id: string;
+        };
+        Insert: {
+          community_id: string;
+          created_at?: string | null;
+          id?: string;
+          profile_id: string;
+        };
+        Update: {
+          community_id?: string;
+          created_at?: string | null;
+          id?: string;
+          profile_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'likes_community_id_fkey';
+            columns: ['community_id'];
+            isOneToOne: false;
+            referencedRelation: 'community';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'likes_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notification: {
+        Row: {
+          contents: string | null;
+          created_at: string | null;
+          id: string;
+          profile_id: string;
+          target_id: string | null;
+          type: string | null;
+        };
+        Insert: {
+          contents?: string | null;
+          created_at?: string | null;
+          id?: string;
+          profile_id: string;
+          target_id?: string | null;
+          type?: string | null;
+        };
+        Update: {
+          contents?: string | null;
+          created_at?: string | null;
+          id?: string;
+          profile_id?: string;
+          target_id?: string | null;
+          type?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profile: {
         Row: {
           created_at: string;
@@ -22,6 +211,124 @@ export type Database = {
           id?: string;
         };
         Relationships: [];
+      };
+      record: {
+        Row: {
+          contents: string | null;
+          created_at: string | null;
+          id: string;
+          profile_id: string;
+          tarot_id: string;
+          title: string | null;
+        };
+        Insert: {
+          contents?: string | null;
+          created_at?: string | null;
+          id?: string;
+          profile_id: string;
+          tarot_id: string;
+          title?: string | null;
+        };
+        Update: {
+          contents?: string | null;
+          created_at?: string | null;
+          id?: string;
+          profile_id?: string;
+          tarot_id?: string;
+          title?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'record_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'record_tarot_id_fkey';
+            columns: ['tarot_id'];
+            isOneToOne: false;
+            referencedRelation: 'tarot';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      tarot: {
+        Row: {
+          create_at: string | null;
+          id: string;
+          profile_id: string;
+          result: string | null;
+          topic: string | null;
+        };
+        Insert: {
+          create_at?: string | null;
+          id?: string;
+          profile_id: string;
+          result?: string | null;
+          topic?: string | null;
+        };
+        Update: {
+          create_at?: string | null;
+          id?: string;
+          profile_id?: string;
+          result?: string | null;
+          topic?: string | null;
+        };
+        Relationships: [];
+      };
+      tarot_info: {
+        Row: {
+          create_at: string | null;
+          id: string;
+          name: string;
+          parent_id: string | null;
+          profile_id: string;
+          result: string | null;
+          tarot_id: string;
+        };
+        Insert: {
+          create_at?: string | null;
+          id?: string;
+          name: string;
+          parent_id?: string | null;
+          profile_id: string;
+          result?: string | null;
+          tarot_id: string;
+        };
+        Update: {
+          create_at?: string | null;
+          id?: string;
+          name?: string;
+          parent_id?: string | null;
+          profile_id?: string;
+          result?: string | null;
+          tarot_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'tarot_info_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'tarot_info';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tarot_info_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tarot_info_tarot_id_fkey';
+            columns: ['tarot_id'];
+            isOneToOne: false;
+            referencedRelation: 'tarot';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
     Views: {
