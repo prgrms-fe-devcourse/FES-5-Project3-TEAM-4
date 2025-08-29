@@ -7,11 +7,10 @@
       {
         "scope": "comment",
         "settings": {
-          "foreground": "#00ff73",
+          "foreground": "#6A9955",
           "fontStyle": "italic"
         }
       }
-    ],
-    "comments": ""
+    ]
   }
 }
