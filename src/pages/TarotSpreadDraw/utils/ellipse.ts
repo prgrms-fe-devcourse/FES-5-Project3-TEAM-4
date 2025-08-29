@@ -20,7 +20,7 @@ export function getFanTransformsEllipse(
   rotFactor = 0.68,
   overlapTangentPx = -20,
   bowPx = 12,
-  baselinePx = 0 // ← 추가
+  baselinePx = 0
 ) {
   if (n <= 1) return ['translateX(-50%) translateY(0px)'];
   const start = -maxThetaDeg,
@@ -36,7 +36,7 @@ export function getFanTransformsEllipse(
     const yArc = b * (1 - Math.cos(rad));
     const bow = bowPx * Math.sin(rad) ** 2;
 
-    const ty = -(yArc + bow) + baselinePx; // ← 베이스라인 보정
+    const ty = -(yArc + bow) + baselinePx;
     const txOverlap = overlapTangentPx * Math.cos(rad);
     const tyOverlap = -overlapTangentPx * Math.sin(rad);
     const rot = -deg * rotFactor;

@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { gsap } from 'gsap';
-import Spreading from './components/Spreading';
-import { useElementSize } from './hooks/useElementSize';
-import { computeEllipseAxes, getFanTransformsEllipse } from './utils/ellipse';
-import type { TarotCardModel } from '../Tarot/types/tarot';
+import Spreading from './Spreading';
+import { useElementSize } from '../hooks/useElementSize';
+import { computeEllipseAxes, getFanTransformsEllipse } from '../utils/ellipse';
+import type { TarotCardModel } from '../../Tarot/types/tarot';
 import CardFront from '@/assets/Tarot/tarot_front.svg';
 
 function TarotSpread() {
