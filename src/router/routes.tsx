@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 import { lazy } from 'react';
 import AuthLayout from '@/common/components/AuthLayout';
 import { FiFileText, FiHome, FiUsers } from 'react-icons/fi';
@@ -13,8 +13,14 @@ const Write = lazy(() => import('@/pages/Community/Write'));
 const Mypage = lazy(() => import('@/pages/Mypage'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const PasswordReset = lazy(() => import('@/pages/PasswordReset'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const LoginCallBack = lazy(() => import('@/pages/Login/components/OAuthCallback'));
+const Management = lazy(() => import('@/pages/Mypage/components/Management'));
+const Post = lazy(() => import('@/pages/Mypage/components/Post'));
+const Likes = lazy(() => import('@/pages/Mypage/components/Likes'));
+const Record = lazy(() => import('@/pages/Mypage/components/Record'));
 
 export const routes = createBrowserRouter([
   {
@@ -51,14 +57,33 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'mypage',
-        Component: () => <Mypage />,
         handle: { label: 'Mypage', showInNav: true, icon: FiFileText },
+        Component: Mypage,
         loader: async () => {
           // ex)
           // const { data } = await supabase.from("테이블명").select("*");
           // return data;
           return true;
         },
+        children: [
+          { index: true, element: <Navigate to="management" /> },
+          {
+            path: 'management',
+            Component: Management,
+          },
+          {
+            path: 'post',
+            Component: Post,
+          },
+          {
+            path: 'likes',
+            Component: Likes,
+          },
+          {
+            path: 'record',
+            Component: Record,
+          },
+        ],
       },
 
       {
@@ -81,6 +106,30 @@ export const routes = createBrowserRouter([
             path: 'register',
             Component: Register,
             handle: { label: 'Register', showInNav: false },
+            // action: async ({ request }) => {
+            // ex)
+            // const formData = await request.formData();
+            // const name = formData.get("name") as string;
+            // const email = formData.get("email") as string;
+            // TODO: supabase 통신
+            // },
+          },
+          {
+            path: 'forgotPassword',
+            Component: ForgotPassword,
+            handle: { label: 'forgotPassword', showInNav: false },
+            // action: async ({ request }) => {
+            // ex)
+            // const formData = await request.formData();
+            // const name = formData.get("name") as string;
+            // const email = formData.get("email") as string;
+            // TODO: supabase 통신
+            // },
+          },
+          {
+            path: 'passwordReset',
+            Component: PasswordReset,
+            handle: { label: 'passwordReset', showInNav: false },
             // action: async ({ request }) => {
             // ex)
             // const formData = await request.formData();

@@ -106,6 +106,6 @@ function Meteor() {
     return () => cancelAnimationFrame(rAFRef.current);
   }, []);
 
-  return <canvas ref={meteorCanvasRef} className="w-full h-full absolute" />;
+  return <canvas ref={meteorCanvasRef} className="w-full h-full absolute -z-1" />;
 }
 export default Meteor;

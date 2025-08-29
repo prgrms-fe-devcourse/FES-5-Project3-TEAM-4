@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import tw from '../utils/tw';
 
 interface Props {
   onChange: (email: string) => void;
+  className?: string;
+  placeholder?: string;
 }
 
-function PasswordField({ onChange }: Props) {
+function PasswordField({ onChange, className, placeholder = 'Password' }: Props) {
   const [isPasswordShow, setIsPasswordShow] = useState(true);
+  const inputId = useId();
 
   const handleInput = (e: React.InputEvent<HTMLInputElement>) => {
     const input = e.target as HTMLInputElement;
@@ -17,14 +21,15 @@ function PasswordField({ onChange }: Props) {
 
   return (
     <>
-      <label htmlFor="password" className="border-b border-b-main-white flex w-83">
+      <label htmlFor={inputId} className={tw('border-b border-b-main-white flex w-83', className)}>
         <input
           className="h-8 text-main-white focus:outline-none flex-1"
           type={isPasswordShow ? 'password' : 'text'}
-          placeholder="Password"
-          name="password"
-          id="password"
+          placeholder={placeholder}
+          name={inputId}
+          id={inputId}
           onInput={handleInput}
+          required
         />
 
         <button type="button" className="w-4 cursor-pointer" onClick={handleShowHide}>

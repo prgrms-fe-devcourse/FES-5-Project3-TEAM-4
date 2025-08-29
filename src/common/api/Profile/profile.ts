@@ -1,3 +1,4 @@
+import { showAlert } from '@/common/utils/sweetalert';
 import supabase from '../supabase/supabase';
 
 /**
@@ -5,20 +6,24 @@ import supabase from '../supabase/supabase';
  * @param id
  * @returns
  */
-export async function selectProfile(id: string) {
+export async function selectProfileData(id: string) {
   try {
     const { data: profileData, error: selectProfileError } = await supabase
       .from('profile')
       .select('*')
       .eq('id', id);
     if (selectProfileError) {
-      console.error('profile select 실패!', selectProfileError?.message);
+      showAlert('error', '회원조회실패', selectProfileError?.message);
       return;
     }
     if (!profileData) return;
     return profileData;
   } catch (error) {
-    console.error('selectProfile 에러 ', error);
+    if (error instanceof Error) {
+      showAlert('error', '회원조회실패', error.message);
+    } else if (typeof error === 'string') {
+      showAlert('error', '회원조회실패', error);
+    }
   }
 }
 
@@ -33,12 +38,16 @@ export async function insertProfile(id: string): Promise<{ ok: boolean }> {
       id,
     });
     if (insertProfileError) {
-      console.error('profile insert 실패!', insertProfileError?.message);
+      showAlert('error', '회원등록 실패', insertProfileError?.message);
       return { ok: false };
     }
     return { ok: true };
   } catch (error) {
-    console.error('insertProfile 에러 ', error);
+    if (error instanceof Error) {
+      showAlert('error', '회원등록 실패', error.message);
+    } else if (typeof error === 'string') {
+      showAlert('error', '회원등록 실패', error);
+    }
     return { ok: false };
   }
 }
