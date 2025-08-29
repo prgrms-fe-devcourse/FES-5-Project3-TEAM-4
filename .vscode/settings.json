@@ -7,7 +7,7 @@
       {
         "scope": "comment",
         "settings": {
-          "foreground": "#00ff73",
+          // "foreground": "#00ff73",
           "fontStyle": "italic"
         }
       }

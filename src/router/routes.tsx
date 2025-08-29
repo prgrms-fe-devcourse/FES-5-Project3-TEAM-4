@@ -8,6 +8,8 @@ const Root = lazy(() => import('@/pages'));
 const Home = lazy(() => import('@/pages/Home'));
 const Tarot = lazy(() => import('@/pages/Tarot'));
 const Community = lazy(() => import('@/pages/Community'));
+const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
+const Write = lazy(() => import('@/pages/Community/Write'));
 const Mypage = lazy(() => import('@/pages/Mypage'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
@@ -31,14 +33,21 @@ export const routes = createBrowserRouter([
       },
       {
         path: 'community',
-        Component: Community,
+        Component: CommunityLayout,
         handle: { label: 'Community', showInNav: true, icon: FiUsers },
-        loader: async () => {
-          // ex)
-          // const { data } = await supabase.from("테이블명").select("*");
-          // return data;
-          return true;
-        },
+        children: [
+          {
+            index: true,
+            Component: Community,
+            handle: { showInNav: false },
+            loader: async () => true,
+          },
+          {
+            path: 'write',
+            Component: Write,
+            handle: { showInNav: false },
+          },
+        ],
       },
       {
         path: 'mypage',
