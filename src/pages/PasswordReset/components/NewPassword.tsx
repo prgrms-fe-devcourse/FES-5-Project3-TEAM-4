@@ -5,7 +5,11 @@ import { showAlert } from '@/common/utils/sweetalert';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-function NewPassword() {
+interface Props {
+  provider?: string;
+}
+
+function NewPassword({ provider }: Props) {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [validateText, setValidateText] = useState('');
@@ -20,9 +24,15 @@ function NewPassword() {
     const success = await updateUser(password);
 
     if (typeof success === 'string') {
-      showAlert('success', '비밀번호 변경 성공!', '다시 로그인 해주세요', () => {
-        navigate('/auth/login');
-      });
+      if (provider === 'email') {
+        showAlert('success', '비밀번호 변경 성공!', '다시 로그인 해주세요', () => {
+          navigate('/auth/login');
+        });
+      } else {
+        showAlert('success', '비밀번호 생성 성공!', '지금부터 이메일 로그인이 가능해요!', () => {
+          navigate('/auth/login');
+        });
+      }
     }
   };
   return (
@@ -41,7 +51,7 @@ function NewPassword() {
         type="submit"
         className="text-center font-semibold w-83 h-8 text-main-white border rounded-2xl cursor-pointer text-l border-main-whit hover:text-main-black hover:bg-main-white"
       >
-        비밀번호 변경하기
+        {provider === 'email' ? '비밀번호 변경하기' : '비밀번호 생성하기'}
       </button>
     </form>
   );

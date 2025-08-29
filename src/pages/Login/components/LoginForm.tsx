@@ -17,8 +17,7 @@ function LoginForm() {
     const userInfo = await login(email, password);
 
     if (userInfo) {
-      const provider = userInfo.app_metadata.provider ?? 'email';
-      setUserInfo({ userId: userInfo.id, provider });
+      setUserInfo({ userId: userInfo.id, provider: 'email' });
       showAlert('success', '로그인 성공', '환영합니다!', () => navigate('/'));
     }
   };
