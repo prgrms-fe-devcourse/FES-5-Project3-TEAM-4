@@ -10,27 +10,7 @@ import {
 import { gsap } from 'gsap';
 import clsx from 'clsx';
 import CardBack from '@/assets/Tarot/tarot_back.svg';
-
-type TarotCardProps = {
-  id: number;
-  name: string;
-  frontSrc: string;
-  faceUp?: boolean;
-  reversed?: boolean;
-  width?: number | string;
-  onFlip?: (id: number, faceUp: boolean) => void;
-  onClick?: (id: number) => void;
-  className?: string;
-  clickMode?: 'flip' | 'none';
-  flipDir?: 1 | -1;
-};
-
-export type TarotCardHandle = {
-  flip: (to?: boolean) => void;
-  rootEl: HTMLDivElement | null;
-  cardEl: HTMLDivElement | null;
-  isFaceUp: () => boolean;
-};
+import type { TarotCardProps, TarotCardHandle } from '../types/tarot';
 
 const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard(
   {
