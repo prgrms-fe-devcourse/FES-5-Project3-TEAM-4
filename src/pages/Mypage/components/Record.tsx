@@ -1,7 +1,19 @@
 import NightStarBackGround from '@/pages/Home/components/NightStarBackGround';
 import RecordItem from './RecordItem';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/common/store/authStore';
+import { selectTarotRecordListByUserId } from '@/common/api/Tarot/tarot';
 
 function Record() {
+  const userInfo = useAuth((state) => state.userInfo);
+  const [tarotRecordList, setTarotRecordList] = useState(null);
+  useEffect(() => {
+    const getListData = async () => {
+      const listData = await selectTarotRecordListByUserId(userInfo.userId);
+      console.log(listData);
+    };
+    getListData();
+  }, []);
   return (
     <section className=" w-[750px] h-[85vh] flex flex-col gap-5 pt-10">
       <h1 className="text-main-white pt-14 text-2xl font-semibold">Record</h1>
