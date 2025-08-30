@@ -40,6 +40,9 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
   const startTransRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const transRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  const preAngleRef = useRef<number>(0);
+  const hadPreAngleRef = useRef(false);
+
   useEffect(() => setIsFaceUp(faceUp), [faceUp]);
   useEffect(() => setIsLocked(locked), [locked]);
 
@@ -50,7 +53,6 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     };
   }, []);
 
-  // 마운트/상태변경 시 초기 3D 상태 세팅
   const applyTransforms = useCallback(() => {
     if (!cardRef.current || !frontRef.current || !backRef.current) return;
     gsap.set(rootRef.current, { perspective: 1200, transformStyle: 'preserve-3d' });
@@ -84,7 +86,6 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     applyTransforms();
   }, [applyTransforms]);
 
-  // 카드 넘기는 애니메이션
   const flip = useCallback(
     (to?: boolean) => {
       if (!cardRef.current) return;
@@ -140,33 +141,54 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     [isFaceUp, flipDir, id, onFlip]
   );
 
-  // 카드의 루트 컨테이너 해당 장소로 이동
   const moveTo = useCallback((x: number, y: number, ms = 380) => {
     if (!rootRef.current) return;
     transRef.current = { x, y };
     gsap.to(rootRef.current, { x, y, duration: ms / 1000, ease: 'power3.out' });
   }, []);
 
-  // 지정된 위치에 놓지 않을 경우 카드 원위치
   const reset = useCallback(
     (ms = 280) => {
       moveTo(0, 0, ms);
       if (rootRef.current) gsap.set(rootRef.current, { zIndex: 1 });
+      if (hadPreAngleRef.current && rootRef.current) {
+        gsap.to(rootRef.current, {
+          rotationZ: preAngleRef.current,
+          duration: ms / 1000,
+          ease: 'power3.out',
+        });
+      }
+      if (rootRef.current) {
+        gsap.to(rootRef.current, { scale: 1, duration: ms / 1000, ease: 'power3.out' });
+      }
     },
     [moveTo]
   );
 
-  // 카드 상호작용 잠금/해제 상태 토글
+  const applyFitScale = useCallback((containerWidth: number, ratio = 0.9, ms = 280) => {
+    if (!rootRef.current) return;
+    const desired = containerWidth * ratio;
+    const currentScale = Number(gsap.getProperty(rootRef.current, 'scale')) || 1;
+    const currentWidth = rootRef.current.getBoundingClientRect().width;
+    const nextScale = currentScale * (desired / currentWidth);
+    gsap.to(rootRef.current, { scale: nextScale, duration: ms / 1000, ease: 'power3.out' });
+  }, []);
+
   const lock = useCallback(() => {
     setIsLocked(true);
     if (rootRef.current) gsap.set(rootRef.current, { zIndex: 60 });
-  }, []);
+    const w = rootRef.current?.dataset.fitw;
+    if (w) {
+      const containerWidth = Number(w);
+      if (!Number.isNaN(containerWidth)) applyFitScale(containerWidth, 0.9, 320);
+      delete rootRef.current!.dataset.fitw;
+    }
+  }, [applyFitScale]);
   const unlock = useCallback(() => {
     setIsLocked(false);
     if (rootRef.current) gsap.set(rootRef.current, { zIndex: 1 });
   }, []);
 
-  // 부모가 flip(), moveTo() 등 명령형으로 호출할 수 있도록
   useImperativeHandle(
     ref,
     () => ({
@@ -182,7 +204,6 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     [flip, moveTo, reset, isFaceUp, lock, unlock]
   );
 
-  // 호버 중 반응
   const onHoverMove = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!cardRef.current || animatingRef.current || draggingRef.current) return;
 
@@ -207,7 +228,6 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     }
   };
 
-  // 호버 종료 시 반응
   const onHoverLeave = () => {
     if (!cardRef.current) return;
     gsap.to(cardRef.current, {
@@ -221,19 +241,39 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     }
   };
 
-  // 드래그 시작
   const onPtrDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (animatingRef.current || isLocked || isFaceUp) return;
     draggingRef.current = true;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
+    const root = rootRef.current!;
+    const rect = cardRef.current!.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    const tx = Number(gsap.getProperty(root, 'x')) || transRef.current.x || 0;
+    const ty = Number(gsap.getProperty(root, 'y')) || transRef.current.y || 0;
+
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+
+    const nx = tx + dx;
+    const ny = ty + dy;
+
+    preAngleRef.current = Number(gsap.getProperty(root, 'rotationZ')) || 0;
+    hadPreAngleRef.current = true;
+
+    transRef.current = { x: nx, y: ny };
+    startTransRef.current = { x: nx, y: ny };
     startPosRef.current = { x: e.clientX, y: e.clientY };
-    startTransRef.current = { ...transRef.current };
-    onDragStart?.(id);
-    if (rootRef.current) gsap.set(rootRef.current, { zIndex: 60 });
+
+    gsap.set(root, { x: nx, y: ny, zIndex: 60 });
+    gsap.to(root, { rotationZ: 0, duration: 0.12, ease: 'power2.out' });
     gsap.to(cardRef.current, { scale: hoverBackScale, duration: 0.1 });
+
+    onDragStart?.(id);
   };
 
-  // 드래그 이동
   const onPtrMove = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!draggingRef.current || !rootRef.current || !startPosRef.current) return;
     const dx = e.clientX - startPosRef.current.x;
@@ -244,7 +284,6 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     gsap.to(rootRef.current, { x: nx, y: ny, duration: 0, overwrite: 'auto' });
   };
 
-  // 드래그 종료
   const onPtrUp = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!draggingRef.current) return;
     draggingRef.current = false;
@@ -259,7 +298,6 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     });
   };
 
-  // 클릭
   const onBtnClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (animatingRef.current || draggingRef.current) return;
     onClick?.(id);
@@ -286,7 +324,7 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
       >
         <div
           ref={frontRef}
-          className="absolute inset-0 rounded-xl bg-center bg-cover [backface-visibility:hidden]"
+          className="absolute inset-0 rounded-md bg-center bg-cover [backface-visibility:hidden]"
           style={{
             backgroundImage: `url(${frontSrc})`,
             transform: 'rotateY(0deg) translateZ(0.2px)',
@@ -295,7 +333,7 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
         />
         <div
           ref={backRef}
-          className="absolute inset-0 rounded-xl bg-center bg-cover [backface-visibility:hidden]"
+          className="absolute inset-0 rounded-md bg-center bg-cover [backface-visibility:hidden]"
           style={{
             backgroundImage: `url(${CardBackUrl})`,
             transform: 'rotateY(180deg) translateZ(0.2px)',
