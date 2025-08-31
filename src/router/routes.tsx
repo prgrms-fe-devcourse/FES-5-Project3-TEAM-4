@@ -11,6 +11,7 @@ const Community = lazy(() => import('@/pages/Community'));
 const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const Write = lazy(() => import('@/pages/Community/Write'));
 const Detail = lazy(() => import('@/pages/Community/Detail'));
+const Edit = lazy(() => import('@/pages/Community/Edit'));
 const Mypage = lazy(() => import('@/pages/Mypage'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
@@ -57,6 +58,11 @@ export const routes = createBrowserRouter([
           {
             path: ':id',
             Component: Detail,
+            handle: { showInNav: false },
+          },
+          {
+            path: 'edit/:id',
+            Component: Edit,
             handle: { showInNav: false },
           },
         ],

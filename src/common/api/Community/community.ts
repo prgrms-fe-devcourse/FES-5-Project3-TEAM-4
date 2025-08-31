@@ -6,6 +6,7 @@ import type {
   ListResult,
 } from '@/common/types/community';
 import supabase from '../supabase/supabase';
+import type { TablesUpdate } from '../supabase/database.types';
 
 /**
  * community 테이블 select 내부 공통 실행 함수
@@ -93,7 +94,7 @@ export function selectCommunityListWithKeyword(
 }
 
 /**
- * community 테이블 단건 조회 (id 기준)
+ * community 테이블 글 하나 조회 (id 기준)
  * @param id community.id
  * @returns CommunityRow | null
  */
@@ -107,5 +108,32 @@ export async function selectCommunityById(id: string): Promise<CommunityRow | nu
     showAlert('error', '게시글 조회 실패', (err as Error).message);
 
     return null;
+  }
+}
+
+// 글 하나 업데이트
+export async function updateCommunity(
+  id: string,
+  payload: TablesUpdate<'community'>
+): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('community').update(payload).eq('id', id).single();
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    showAlert('error', '게시글 수정 실패', (err as Error).message);
+    return false;
+  }
+}
+
+// 글 하나 삭제
+export async function deleteCommunity(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('community').delete().eq('id', id).single();
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    showAlert('error', '게시글 삭제 실패', (err as Error).message);
+    return false;
   }
 }

@@ -24,12 +24,14 @@ export function ListItem({ post, onClick }: ListItemProps) {
         role="button"
         tabIndex={0}
         onClick={() => onClick?.(post.id)}
-        className={`grid grid-cols-[140px_1fr_80px] items-center rounded-[18px] bg-white/5 backdrop-blur-md
+        className={`flex items-center rounded-[18px] bg-white/5 backdrop-blur-md
                     px-5 py-3 transition cursor-pointer ${hoverBorderActiveGlow}`}
       >
-        <span className="text-sm text-white/80">{post.date}</span>
-        <span className="text-sm pl-4 line-clamp-1">{post.title}</span>
-        <LikeButton communityId={String(post.id)} count={post.likes} liked={post.liked} />
+        <span className="w-[140px] shrink-0 text-sm text-white/80">{post.date}</span>
+        <span className="flex-1 text-sm pl-4 line-clamp-1">{post.title}</span>
+        <div className="w-[50px] flex justify-end shrink-0">
+          <LikeButton communityId={String(post.id)} count={post.likes} liked={post.liked} />
+        </div>
       </div>
     </li>
   );

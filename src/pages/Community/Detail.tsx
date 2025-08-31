@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
-import { selectCommunityById } from '@/common/api/Community/community';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { deleteCommunity, selectCommunityById } from '@/common/api/Community/community';
 import type { CommunityRow, CommunityRowUI } from '@/common/types/community';
 import LikeButton from './components/LikeButton';
 import { Button } from '@/common/components/Button';
+import supabase from '@/common/api/supabase/supabase';
+import { showAlert, showConfirmAlert } from '@/common/utils/sweetalert';
+import { FiArrowLeft } from 'react-icons/fi';
 
 type Comment = {
   id: string;
@@ -16,12 +19,64 @@ type Comment = {
 const toDate10 = (s?: string | null) => (s ? s.slice(0, 10) : '');
 
 export default function CommunityDetail() {
+  const nav = useNavigate();
+  const [canEdit, setCanEdit] = useState(false);
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const stateRow = (location.state as { row?: CommunityRow } | undefined)?.row;
   const [row, setRow] = useState<CommunityRowUI | null>(stateRow ?? null);
   const [loading, setLoading] = useState(!stateRow);
   const [error, setError] = useState<string | null>(null);
+
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
+  const openViewer = (idx: number) => {
+    setViewerIndex(idx);
+    setViewerOpen(true);
+  };
+
+  const images = useMemo(() => {
+    const arr = (row?.file_urls as string[] | null | undefined) ?? [];
+    return arr.filter(Boolean);
+  }, [row]);
+
+  const closeViewer = () => setViewerOpen(false);
+
+  const showPrev = () => setViewerIndex((i) => (i - 1 + images.length) % images.length);
+
+  const showNext = () => setViewerIndex((i) => (i + 1) % images.length);
+
+  // ESC / 좌우 방향키
+  useEffect(() => {
+    if (!viewerOpen) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setViewerOpen(false); // closeViewer() 대신 인라인
+      }
+      if (e.key === 'ArrowLeft') {
+        setViewerIndex((i) => (i - 1 + images.length) % images.length); // showPrev 내용
+      }
+      if (e.key === 'ArrowRight') {
+        setViewerIndex((i) => (i + 1) % images.length); // showNext 내용
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [viewerOpen, images.length]);
+
+  useEffect(() => {
+    // 로그인 유저가 작성자인지 확인
+    (async () => {
+      if (!row) return;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setCanEdit(Boolean(user && user.id === row.profile_id));
+    })();
+  }, [row]);
 
   // TODO: 실제 데이터로 교체
   const [commentText, setCommentText] = useState('');
@@ -64,10 +119,23 @@ export default function CommunityDetail() {
     })();
   }, [id, row]);
 
-  const coverImage = useMemo(() => {
-    const files = (row?.file_urls as string[] | null | undefined) ?? [];
-    return files[0] ?? '';
-  }, [row]);
+  const onClickEdit = () => {
+    nav(`/community/edit/${row!.id}`, { state: { row } });
+  };
+
+  const onClickDelete = async () => {
+    if (!id) return;
+
+    showConfirmAlert('삭제 하시겠습니까?', '삭제 후 복구할 수 없습니다.', async () => {
+      const success = await deleteCommunity(id);
+      if (success) {
+        showAlert('info', '삭제되었습니다.');
+        nav('/community');
+      } else {
+        showAlert('error', '삭제에 실패했어요.');
+      }
+    });
+  };
 
   if (loading) return <div className="mt-6 text-white/70">로딩 중…</div>;
   if (error) return <div className="mt-6 text-white/70">{error}</div>;
@@ -75,6 +143,18 @@ export default function CommunityDetail() {
 
   return (
     <section className="space-y-6">
+      {/* ← 목록으로 */}
+      <Button
+        type="button"
+        onClick={() => nav('/community')}
+        variant="ghost"
+        size="sm"
+        className="inline-flex items-center gap-2"
+      >
+        <FiArrowLeft />
+        <span className="text-sm">목록으로</span>
+      </Button>
+
       {/* 상단: 날짜 + 제목 바 */}
       <div className="rounded-xl bg-white/10 backdrop-blur-md px-4 py-3 border border-white/15">
         <div className="flex items-center gap-3 text-sm">
@@ -87,24 +167,112 @@ export default function CommunityDetail() {
         </div>
       </div>
 
-      {/* 이미지 카드 */}
-      <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md p-3">
-        <div className="rounded-xl overflow-hidden bg-black/20 aspect-[16/9] flex items-center justify-center">
-          {coverImage ? (
-            // 실제 이미지
-            <img
-              src={coverImage}
-              alt={row.title ?? 'community image'}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            // 플레이스홀더
-            // 빈자리를 차지하는게 나을지
-            <div className="text-white/60 text-sm">이미지가 없습니다</div>
-          )}
+      {/* 이미지 갤러리 */}
+      {images.length > 0 && (
+        <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md p-3">
+          <div className="flex flex-wrap gap-3">
+            {images.map((src, i) => (
+              <button
+                key={src + i}
+                type="button"
+                onClick={() => openViewer(i)}
+                className="group flex-1 basis-[240px] aspect-[16/9] rounded-xl overflow-hidden bg-black/20
+                     ring-1 ring-white/10 hover:ring-white/40 active:shadow-[0_0_20px_rgba(255,255,255,0.35)]"
+              >
+                <img
+                  src={src}
+                  alt={`attachment-${i + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                  loading="lazy"
+                />
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* 라이트박스 모달 */}
+      {viewerOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeViewer} />
+
+          {/* 패널 */}
+          <div className="relative z-10 w-[min(96vw,1200px)] max-h-[90vh] p-3">
+            {/* 상단 닫기 */}
+            <div className="flex justify-end mb-2">
+              <Button type="button" onClick={closeViewer} variant="ghost" size="sm">
+                닫기
+              </Button>
+            </div>
+
+            {/* 이미지 영역 */}
+            <div className="relative rounded-2xl bg-white/5 ring-1 ring-white/20 overflow-hidden">
+              <div className="flex items-center justify-center max-h-[78vh]">
+                <img
+                  src={images[viewerIndex]}
+                  alt={`attachment-large-${viewerIndex + 1}`}
+                  className="max-h-[78vh] w-auto object-contain"
+                />
+              </div>
+
+              {/* 좌/우 네비게이션 */}
+              {images.length > 1 && (
+                <>
+                  <Button
+                    type="button"
+                    onClick={showPrev}
+                    variant="ghost"
+                    size="sm"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-2
+                 bg-white/10 hover:bg-white/20 border border-white/30 hover:border-white/60"
+                    aria-label="이전 이미지"
+                  >
+                    ‹
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={showNext}
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-2
+                 bg-white/10 hover:bg-white/20 border border-white/30 hover:border-white/60"
+                    aria-label="다음 이미지"
+                  >
+                    ›
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* 하단 인덱스/썸네일(선택) */}
+            {images.length > 1 && (
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                {images.map((thumb, i) => (
+                  <button
+                    key={thumb + i}
+                    type="button"
+                    onClick={() => setViewerIndex(i)}
+                    className={`h-14 w-20 rounded-md overflow-hidden ring-1
+                ${i === viewerIndex ? 'ring-white' : 'ring-white/20 hover:ring-white/40'}`}
+                  >
+                    <img
+                      src={thumb}
+                      alt={`thumb-${i + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 본문 카드 */}
       <article className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md p-5">
@@ -122,21 +290,17 @@ export default function CommunityDetail() {
           />
 
           <div className="flex items-center gap-3 text-white/70">
-            <button
-              type="button"
-              onClick={() => console.log('수정', row.id)}
-              className="hover:text-white cursor-pointer"
-            >
-              수정
-            </button>
-            <span aria-hidden className="h-3 w-px bg-white/20" />
-            <button
-              type="button"
-              onClick={() => console.log('삭제', row.id)}
-              className="hover:text-white cursor-pointer"
-            >
-              삭제
-            </button>
+            {canEdit && (
+              <>
+                <Button type="button" onClick={onClickEdit} variant="ghost" size="sm">
+                  수정
+                </Button>
+                <span aria-hidden className="h-3 w-px bg-white/20" />
+                <Button type="button" onClick={onClickDelete} variant="ghost" size="sm">
+                  삭제
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </article>
