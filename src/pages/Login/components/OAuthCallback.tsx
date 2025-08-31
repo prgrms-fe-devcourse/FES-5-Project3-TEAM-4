@@ -1,4 +1,4 @@
-import { insertProfile, selectProfile } from '@/common/api/Profile/profile';
+import { insertProfile, selectProfileData } from '@/common/api/Profile/profile';
 import supabase from '@/common/api/supabase/supabase';
 import { useAuth } from '@/common/store/authStore';
 import { useEffect } from 'react';
@@ -30,7 +30,7 @@ function OAuthCallback() {
           provider: (currentProvider ?? 'email') as 'email' | 'github' | 'google',
         });
 
-        const userInfo = await selectProfile(session.user.id);
+        const userInfo = await selectProfileData(session.user.id);
         //회원이 아닐경우 profile테이블에 insert
         if (!userInfo || userInfo.length === 0) insertProfile(session.user.id);
 

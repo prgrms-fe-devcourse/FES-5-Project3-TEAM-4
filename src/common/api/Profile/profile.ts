@@ -6,7 +6,7 @@ import supabase from '../supabase/supabase';
  * @param id
  * @returns
  */
-export async function selectProfile(id: string) {
+export async function selectProfileData(id: string) {
   try {
     const { data: profileData, error: selectProfileError } = await supabase
       .from('profile')

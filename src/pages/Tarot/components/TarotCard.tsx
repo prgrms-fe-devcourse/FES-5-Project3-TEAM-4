@@ -1,169 +1,172 @@
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-  useCallback,
-} from 'react';
-import { gsap } from 'gsap';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, useCallback } from 'react';
 import clsx from 'clsx';
-import CardBack from '@/assets/Tarot/tarot_back.svg';
-import type { TarotCardProps, TarotCardHandle } from '../types/tarot';
+import CardBackUrl from '@/assets/Tarot/tarot_back.svg?url';
+import type { TarotCardHandle, TarotCardProps } from '../types/CardProps';
+
+import useApplyTransforms from '../hooks/useApplyTransforms';
+import useCardFlip from '../hooks/useCardFlip';
+import useCardHover from '../hooks/useCardHover';
+import useCardDrag from '../hooks/useCardDrag';
 
 const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard(
   {
     id,
     name,
     frontSrc,
+    width = 210,
     faceUp = false,
     reversed = false,
-    width = 220,
+    flipDir = -1,
+    locked = false,
+    hoverBackScale = 1.06,
     onFlip,
     onClick,
+    onOpenModal,
+    onDragStart,
+    onDragEnd,
     className,
-    clickMode = 'flip',
-    flipDir = -1,
   },
   ref
 ) {
   const rootRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isFaceUp, setIsFaceUp] = useState(faceUp);
-  const animatingRef = useRef(false);
+  const frontRef = useRef<HTMLDivElement>(null);
+  const backRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setIsFaceUp(faceUp), [faceUp]);
+  const [isLocked, setIsLocked] = useState(locked);
+
+  const { isFaceUp, setIsFaceUp, flip, animatingRef } = useCardFlip({
+    id,
+    faceUpProp: faceUp,
+    flipDir,
+    onFlip,
+    cardRef,
+    frontRef,
+    backRef,
+  });
+
+  useApplyTransforms({
+    rootRef,
+    cardRef,
+    frontRef,
+    backRef,
+    isFaceUp,
+    flipDir,
+    reversed,
+  });
+
+  const { draggingRef, isLockedRef, onPtrDown, onPtrMove, onPtrUp, moveTo, reset, lock, unlock } =
+    useCardDrag({
+      id,
+      lockedProp: locked,
+      isFaceUp,
+      hoverBackScale,
+      onDragStart,
+      onDragEnd,
+      rootRef,
+      cardRef,
+    });
+
+  const { onHoverMove, onHoverLeave } = useCardHover({
+    isFaceUp,
+    flipDir,
+    hoverBackScale,
+    animatingRef,
+    draggingRef,
+    cardRef,
+    backRef,
+  });
 
   useEffect(() => {
-    if (!cardRef.current) return;
-    gsap.set(cardRef.current, {
-      transformStyle: 'preserve-3d',
-      willChange: 'transform',
-      z: 0.01,
-    });
-    gsap.set(cardRef.current, { rotateY: isFaceUp ? 0 : 180 * flipDir, force3D: false });
-    gsap.set(cardRef.current, { rotateZ: reversed ? 180 : 0, force3D: false });
-  }, [isFaceUp, reversed, flipDir]);
+    setIsFaceUp(faceUp);
+  }, [faceUp, setIsFaceUp]);
 
-  const ratioH = useMemo(() => Math.round((Number(width) || 220) * 1.75), [width]);
+  useEffect(() => {
+    setIsLocked(locked);
+    isLockedRef.current = locked;
+  }, [locked, isLockedRef]);
 
-  const runFlip = useCallback(
-    (to?: boolean) => {
-      if (!cardRef.current) return;
-      if (animatingRef.current) return;
-      const next = typeof to === 'boolean' ? to : !isFaceUp;
-      animatingRef.current = true;
-      gsap.to(cardRef.current, {
-        rotateY: next ? 0 : 180 * flipDir,
-        duration: 0.5,
-        ease: 'power3.inOut',
-        force3D: true,
-        onComplete: () => {
-          gsap.set(cardRef.current, {
-            rotateX: 0,
-            rotateY: next ? 0 : 180 * flipDir,
-            z: 0.01,
-            force3D: false,
-          });
-          animatingRef.current = false;
-        },
-      });
-      setIsFaceUp(next);
-      onFlip?.(id, next);
+  const onBtnClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (animatingRef.current || draggingRef.current) return;
+      onClick?.(id);
+      if (isFaceUp && !isLocked) onOpenModal?.(id);
+      e.currentTarget.blur();
     },
-    [isFaceUp, flipDir, id, onFlip]
+    [animatingRef, draggingRef, isFaceUp, isLocked, id, onClick, onOpenModal]
   );
 
   useImperativeHandle(
     ref,
     () => ({
-      flip: runFlip,
+      flip,
+      lock: () => {
+        setIsLocked(true);
+        lock();
+      },
+      unlock: () => {
+        setIsLocked(false);
+        unlock();
+      },
+      moveTo,
+      reset,
+      isFaceUp: () => isFaceUp,
       rootEl: rootRef.current,
       cardEl: cardRef.current,
-      isFaceUp: () => isFaceUp,
     }),
-    [runFlip, isFaceUp]
+    [flip, lock, unlock, moveTo, reset, isFaceUp]
   );
-
-  const handleHover = (e: React.MouseEvent) => {
-    if (!rootRef.current || !cardRef.current) return;
-    if (animatingRef.current) return;
-    const rect = rootRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    const rx = gsap.utils.clamp(-8, 8, (-y / rect.height) * 20);
-    const ry = gsap.utils.clamp(-8, 8, (x / rect.width) * 20);
-    gsap.to(cardRef.current, {
-      rotateX: rx,
-      rotateY: (isFaceUp ? 0 : 180 * flipDir) + ry,
-      duration: 0.25,
-      force3D: true,
-    });
-  };
-
-  const handleLeave = () => {
-    if (!cardRef.current) return;
-    gsap.to(cardRef.current, {
-      rotateX: 0,
-      rotateY: isFaceUp ? 0 : 180 * flipDir,
-      duration: 0.35,
-      ease: 'power2.out',
-      onComplete: () => {
-        gsap.set(cardRef.current, { z: 0.01, force3D: false });
-        animatingRef.current = false;
-      },
-    });
-  };
 
   return (
     <div
       ref={rootRef}
-      style={{ width, height: ratioH }}
-      className={clsx('relative select-none [perspective:1200px] group', 'rounded-2xl', className)}
+      style={{ width }}
+      className={clsx(
+        'relative select-none [perspective:1200px] aspect-[7/12]',
+        'rounded-2xl',
+        className
+      )}
     >
       <div
         ref={cardRef}
         className={clsx(
           'absolute inset-0 rounded-xl pointer-events-none',
-          'shadow-[0_8px_30px_rgba(0,0,0,0.45)] transition-[box-shadow] duration-300',
-          'group-hover:shadow-main-white'
+          'shadow-[0_8px_30px_rgba(0,0,0,0.45)] transition-[box-shadow] duration-300'
         )}
       >
-        <img
-          src={frontSrc}
-          alt={name}
-          draggable={false}
-          className={clsx(
-            'absolute inset-0 w-full h-full object-cover rounded-xl',
-            '[backface-visibility:hidden]'
-          )}
-          style={{ transform: 'rotateY(0deg)' }}
+        <div
+          ref={frontRef}
+          className="absolute inset-0 rounded-md bg-center bg-cover [backface-visibility:hidden]"
+          style={{
+            backgroundImage: `url(${frontSrc})`,
+            transform: 'rotateY(0deg) translateZ(0.2px)',
+          }}
+          aria-label={name}
         />
-        <img
-          src={CardBack}
-          alt="카드 뒷면"
-          draggable={false}
-          className={clsx(
-            'absolute inset-0 w-full h-full object-cover rounded-xl',
-            '[backface-visibility:hidden]'
-          )}
-          style={{ transform: `rotateY(${180 * flipDir}deg)` }}
+        <div
+          ref={backRef}
+          className="absolute inset-0 rounded-md bg-center bg-cover [backface-visibility:hidden]"
+          style={{
+            backgroundImage: `url(${CardBackUrl})`,
+            transform: 'rotateY(180deg) translateZ(0.2px)',
+          }}
+          aria-label="카드 뒷면"
         />
       </div>
 
       <button
         type="button"
         aria-label={`${name}${isFaceUp ? ' 앞면' : ' 뒷면'}`}
-        onClick={(e) => {
-          if (animatingRef.current) return;
-          if (clickMode === 'flip') runFlip();
-          onClick?.(id);
-          e.currentTarget.blur();
-        }}
-        onMouseMove={handleHover}
-        onMouseLeave={handleLeave}
-        className="absolute inset-0 outline-none z-10"
+        onClick={onBtnClick}
+        onMouseMove={onHoverMove}
+        onMouseLeave={onHoverLeave}
+        onPointerDown={onPtrDown}
+        onPointerMove={onPtrMove}
+        onPointerUp={onPtrUp}
+        className={clsx(
+          'absolute inset-0 outline-none z-10',
+          isFaceUp || isLocked ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'
+        )}
       />
     </div>
   );
