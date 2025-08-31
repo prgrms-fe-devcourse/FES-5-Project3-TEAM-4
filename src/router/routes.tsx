@@ -8,7 +8,7 @@ const Root = lazy(() => import('@/pages'));
 const Home = lazy(() => import('@/pages/Home'));
 const Tarot = lazy(() => import('@/pages/Tarot'));
 const Community = lazy(() => import('@/pages/Community'));
-const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
+const CommunityLayout = lazy(() => import('@/pages/Community/components/CommunityLayout'));
 const Write = lazy(() => import('@/pages/Community/Write'));
 const Detail = lazy(() => import('@/pages/Community/Detail'));
 const Edit = lazy(() => import('@/pages/Community/Edit'));

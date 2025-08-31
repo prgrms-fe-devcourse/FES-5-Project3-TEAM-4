@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
 
 import { ListItem, type Post } from '@/common/components/ListItem';
@@ -12,6 +12,7 @@ import type { CommunityRowUI, CommunitySortKey } from '@/common/types/community'
 import { formatDate } from '@/common/utils/format';
 import supabase from '@/common/api/supabase/supabase';
 import { showAlert } from '@/common/utils/sweetalert';
+import AuthOnlyButton from '@/common/components/AuthOnlyButton';
 
 const PAGE_SIZE = 10;
 
@@ -135,14 +136,12 @@ export default function Community() {
 
   return (
     <>
-      {/* 검색 */}
       <SearchInput
         placeholder="검색어를 입력해주세요"
         onChange={(e) => setQ(e.currentTarget.value)}
         onSearch={() => handleSearch()}
       />
 
-      {/* 정렬 */}
       <SortBar
         value={sort}
         onChange={(s) => {
@@ -151,10 +150,8 @@ export default function Community() {
         }}
       />
 
-      {/* 리스트 헤더 */}
       <ListHeader />
 
-      {/* 리스트 */}
       {/* todo 이거 너무 깜빡이는 느낌. 스켈레톤 ui 넣어야하나? */}
       {loading ? (
         <div className="mt-6 text-white/70">로딩 중…</div>
@@ -175,17 +172,16 @@ export default function Community() {
       )}
 
       <div className="relative mt-8">
-        {/* 페이지네이션 */}
         <Pagination total={total} page={page} pageSize={PAGE_SIZE} onPageChange={setPage} />
 
-        {/* 글쓰기 버튼 */}
-        <Link
-          to="/community/write"
-          className="absolute right-0 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg bg-transparent border border-white/40 
-             text-white text-sm hover:border-white hover:bg-white/10 active:shadow-[0_0_8px_white] cursor-pointer"
+        <AuthOnlyButton
+          variant="ghost"
+          size="md"
+          className="absolute right-0 top-1/2 -translate-y-1/2"
+          onAuthed={() => navigate('/community/write')}
         >
           글쓰기
-        </Link>
+        </AuthOnlyButton>
       </div>
     </>
   );
