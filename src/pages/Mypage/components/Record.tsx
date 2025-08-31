@@ -3,14 +3,17 @@ import RecordItem from './RecordItem';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/common/store/authStore';
 import { selectTarotRecordListByUserId } from '@/common/api/Tarot/tarot';
+import type { Tables } from '@/common/api/supabase/database.types';
+
+type TarotListProps = Tables<'tarot'> & { record: Tables<'record'>[] };
 
 function Record() {
   const userInfo = useAuth((state) => state.userInfo);
-  const [tarotRecordList, setTarotRecordList] = useState(null);
+  const [tarotRecordList, setTarotRecordList] = useState<TarotListProps[] | null>(null);
   useEffect(() => {
     const getListData = async () => {
       const listData = await selectTarotRecordListByUserId(userInfo.userId);
-      console.log(listData);
+      setTarotRecordList(listData);
     };
     getListData();
   }, []);
@@ -31,7 +34,16 @@ function Record() {
               </p>
             </div>
             <ul className="pt-4 overflow-auto h-[40vh] scrollbar-thin scrollbar-thumb-amber-200 scrollbar-track-transparent">
-              <RecordItem />
+              {tarotRecordList &&
+                tarotRecordList.length > 0 &&
+                tarotRecordList.map((tarotRecordData) => (
+                  <RecordItem
+                    key={tarotRecordData.id}
+                    tarotId={tarotRecordData.id}
+                    createdAt={tarotRecordData.created_at}
+                    recordData={tarotRecordData.record}
+                  />
+                ))}
             </ul>
           </div>
         </div>

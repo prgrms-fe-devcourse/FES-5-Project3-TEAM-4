@@ -219,7 +219,6 @@ export type Database = {
           id: string;
           profile_id: string;
           tarot_id: string;
-          title: string | null;
         };
         Insert: {
           contents?: string | null;
@@ -227,7 +226,6 @@ export type Database = {
           id?: string;
           profile_id: string;
           tarot_id: string;
-          title?: string | null;
         };
         Update: {
           contents?: string | null;
@@ -235,7 +233,6 @@ export type Database = {
           id?: string;
           profile_id?: string;
           tarot_id?: string;
-          title?: string | null;
         };
         Relationships: [
           {
@@ -259,6 +256,7 @@ export type Database = {
           created_at: string | null;
           id: string;
           profile_id: string;
+          question: string | null;
           result: string | null;
           topic: string | null;
         };
@@ -266,6 +264,7 @@ export type Database = {
           created_at?: string | null;
           id?: string;
           profile_id: string;
+          question?: string | null;
           result?: string | null;
           topic?: string | null;
         };
@@ -273,6 +272,7 @@ export type Database = {
           created_at?: string | null;
           id?: string;
           profile_id?: string;
+          question?: string | null;
           result?: string | null;
           topic?: string | null;
         };
