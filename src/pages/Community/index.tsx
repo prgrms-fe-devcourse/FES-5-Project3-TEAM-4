@@ -1,46 +1,137 @@
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
+
 import { ListItem, type Post } from '@/common/components/ListItem';
 import { SearchInput } from '@/common/components/SearchInput';
 import { SortBar, type SortKey } from './components/SortBar';
-import { useEffect, useMemo, useState } from 'react';
 import { ListHeader } from './components/ListHeader';
 import Pagination from './components/Pagination';
-import { getPostList } from '@/common/api/post/postList';
 
-const PAGE_SIZE = 10; // 고정
+import { selectCommunityList } from '@/common/api/Community/community';
+import type { CommunityRowUI, CommunitySortKey } from '@/common/types/community';
+import { formatDate } from '@/common/utils/format';
+import supabase from '@/common/api/supabase/supabase';
+import { showAlert } from '@/common/utils/sweetalert';
+
+const PAGE_SIZE = 10;
+
+const sortMap: Record<SortKey, { column: CommunitySortKey; ascending: boolean }> = {
+  new: { column: 'created_at', ascending: false },
+  old: { column: 'created_at', ascending: true },
+  'like-desc': { column: 'likes', ascending: false },
+  'like-asc': { column: 'likes', ascending: true },
+};
 
 export default function Community() {
-  // 페이지네이션 상태
+  const navigate = useNavigate();
+
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortKey>('new');
   const [q, setQ] = useState('');
-  const [items, setItems] = useState<Post[]>([]);
+  const [rows, setRows] = useState<CommunityRowUI[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [likingId, setLikingId] = useState<string | null>(null);
 
-  const fetchList = async () => {
-    setLoading(true);
+  useEffect(() => {
+    const fetchList = async () => {
+      setLoading(true);
+      try {
+        const { column, ascending } = sortMap[sort];
+        const { items, total } = await selectCommunityList(column, ascending, {
+          page,
+          pageSize: PAGE_SIZE,
+          keyword: q,
+        });
+
+        // 로그인 유저 가져오기
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        let likedSet = new Set<string>();
+        if (user && items.length) {
+          // 내가 좋아요한 community_id만 뽑기
+          const { data: likedRows } = await supabase
+            .from('likes')
+            .select('community_id')
+            .eq('profile_id', user.id)
+            .in(
+              'community_id',
+              items.map((i) => i.id)
+            );
+
+          likedSet = new Set((likedRows ?? []).map((r) => r.community_id as string));
+        }
+
+        // rows에 likedByMe 플래그 합치기
+        setRows(items.map((i) => ({ ...i, likedByMe: likedSet.has(i.id) })));
+        setTotal(total);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchList();
+  }, [page, sort, q]);
+
+  const handleSearch = (value?: string) => {
+    setQ((value ?? q).trim());
+    setPage(1);
+  };
+
+  const handleClickList = (id: string) => {
+    const row = rows.find((r) => r.id === id);
+
+    navigate(`/community/${id}`, { state: { row } });
+  };
+
+  // api 로 빼기
+  const handleClickLike = async (communityId: string) => {
+    // 중복 클릭 방지
+    if (likingId === communityId) return;
+    setLikingId(communityId);
+
+    const {
+      data: { user },
+      error: authErr,
+    } = await supabase.auth.getUser();
+    if (authErr || !user) {
+      setLikingId(null);
+      return showAlert('error', '로그인 에러', '로그인이 필요합니다');
+    }
+
     try {
-      // TODO: 공통 api 사용
-      const { items, total } = await getPostList({ page, pageSize: PAGE_SIZE, sort, q });
-      setItems(items);
-      setTotal(total);
+      const { data, error } = await supabase.rpc('toggle_like', { p_community_id: communityId });
+      if (error) throw error;
+
+      const payload = data?.[0];
+      const newCount = payload?.likes_count ?? 0;
+      const liked = payload?.liked ?? false;
+
+      setRows((prev) =>
+        prev.map((r) => (r.id === communityId ? { ...r, likes: newCount, likedByMe: liked } : r))
+      );
+    } catch (e: unknown) {
+      showAlert(
+        'error',
+        '좋아요 에러',
+        e instanceof Error ? e.message : '좋아요 처리 중 오류가 발생했어요.'
+      );
     } finally {
-      setLoading(false);
+      setLikingId(null);
     }
   };
 
-  useEffect(() => {
-    fetchList();
-  }, [page, sort, q]); // 페이지/정렬/검색어 변경 시 재요청
-
-  const handleSearch = (value?: string) => {
-    setQ(value ?? q);
-    setPage(1); // 검색/정렬 변경 시 1페이지로
-  };
-
-  const handleClickList = (id: number | string) => console.log('게시글 클릭: ', id);
-  const handleClickLike = (id: number | string) => console.log('좋아요 클릭: ', id);
+  // UI에 필요한 형태로만 매핑해서 ListItem에 넘김
+  // UI에 필요한 형태
+  const listForUI: Post[] = rows.map((r) => ({
+    id: r.id,
+    date: formatDate(r.created_at ?? ''),
+    title: r.title ?? '',
+    likes: r.likes ?? 0,
+    liked: !!r.likedByMe,
+  }));
 
   return (
     <>
@@ -60,33 +151,31 @@ export default function Community() {
         }}
       />
 
-      {/* 헤더 */}
+      {/* 리스트 헤더 */}
       <ListHeader />
 
       {/* 리스트 */}
+      {/* todo 이거 너무 깜빡이는 느낌. 스켈레톤 ui 넣어야하나? */}
       {loading ? (
         <div className="mt-6 text-white/70">로딩 중…</div>
       ) : (
         <ul className="mt-4 space-y-3">
-          {items.map((post) => (
+          {listForUI.map((post) => (
             <ListItem
               key={post.id}
-              post={{
-                id: post.id,
-                date: post.create_at.slice(0, 10),
-                title: post.title,
-                likes: post.likes,
-              }}
-              onClick={(id) => handleClickList(id)}
-              onLike={(id) => handleClickLike(id)}
+              post={post}
+              onClick={(id) => handleClickList(String(id))}
+              onLike={(id) => handleClickLike(String(id))}
             />
           ))}
-          {items.length === 0 && <li className="text-white/60">검색 결과가 없습니다.</li>}
+          {listForUI.length === 0 && (
+            <li className="text-white/60 py-6 text-center">검색 결과가 없습니다.</li>
+          )}
         </ul>
       )}
 
-      {/* 페이지네이션 + 글쓰기 */}
       <div className="relative mt-8">
+        {/* 페이지네이션 */}
         <Pagination total={total} page={page} pageSize={PAGE_SIZE} onPageChange={setPage} />
 
         {/* 글쓰기 버튼 */}

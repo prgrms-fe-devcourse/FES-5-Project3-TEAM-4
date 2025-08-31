@@ -18,7 +18,7 @@ export function SearchInput({ onSearch, ...props }: SearchInputProps) {
       <input
         id={props.id ?? 'q'}
         type="text"
-        className="w-full bg-transparent pl-4 pr-12 py-3 text-sm placeholder:text-white/60 outline-none cursor-pointer"
+        className="w-full bg-transparent pl-4 pr-12 py-3 text-sm placeholder:text-white/60 outline-none"
         {...props}
       />
       <button

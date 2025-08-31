@@ -1,19 +1,12 @@
 import supabase from '@/common/api/supabase/supabase';
 import { Button } from '@/common/components/Button';
+import { formatDate } from '@/common/utils/format';
+import { showAlert } from '@/common/utils/sweetalert';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import type { Tables } from '@/common/api/supabase/database.types';
 
 type UploadFile = { id: string; file: File };
-
-// Supabase 탸입
-type TrotRow = {
-  id: string;
-  profile_id: string;
-  create_at: string;
-  result: string;
-  topic: string | null;
-};
-
 const STORAGE_BUCKET = 'community-files';
 
 export default function Write() {
@@ -26,7 +19,7 @@ export default function Write() {
   // 모달 상태
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [rows, setRows] = useState<TrotRow[]>([]);
+  const [rows, setRows] = useState<Tables<'tarot'>[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedTarotId, setSelectedTarotId] = useState<string | null>(null);
 
@@ -45,7 +38,7 @@ export default function Write() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  // Supabase에서 trot 불러오기
+  // Supabase에서 tarot 불러오기
   useEffect(() => {
     if (!open) return;
 
@@ -61,15 +54,14 @@ export default function Write() {
         if (authErr) throw authErr;
         if (!user) throw new Error('로그인이 필요합니다.');
 
-        // 여기서 Tables<'trot'>[] 타입 적용
         const { data, error } = await supabase
           .from('tarot')
-          .select('id, profile_id, create_at, result, topic')
+          .select('id, profile_id, created_at, result, topic')
           .eq('profile_id', user.id)
-          .order('create_at', { ascending: false });
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setRows(data ?? ([] as TrotRow[]));
+        setRows(data ?? []);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : '불러오기에 실패했어요.';
         setError(msg);
@@ -81,18 +73,24 @@ export default function Write() {
 
   // 모달 아이템 클릭 → 파일 첨부 + 선택한 타로 id 저장
   // result(이미지 URL/dataURL) -> File 로 변환해서 첨부에 추가
-  const attachFromResult = async (r: TrotRow) => {
+  const attachFromResult = async (r: Tables<'tarot'>) => {
     try {
+      if (!r.result) {
+        showAlert('error', '이미지 에러', '이미지 주소가 없습니다.');
+        return;
+      }
+
       const resp = await fetch(r.result);
       const blob = await resp.blob();
       const ext = blob.type.split('/')[1] || 'png';
-      const safeDate = (r.create_at || '').replace(/[:\s]/g, '-');
+      const safeDate = (r.created_at || '').replace(/[:\s]/g, '-');
       const file = new File([blob], `tarot-${safeDate}.${ext}`, { type: blob.type || 'image/png' });
+
       setFiles((prev) => [...prev, { id: crypto.randomUUID(), file }]);
-      setSelectedTarotId(r.id); // 함께 저장할 tarot_id
+      setSelectedTarotId(r.id); // tarot_id
       setOpen(false);
     } catch {
-      alert('이미지를 첨부로 변환하는 데 실패했어요.');
+      showAlert('error', '이미지를 첨부로 변환하는 데 실패했어요.');
     }
   };
 
@@ -103,25 +101,26 @@ export default function Write() {
     e.preventDefault();
 
     if (!title.trim()) {
-      alert('제목을 입력해 주세요.');
+      showAlert('error', '제목을 입력해 주세요.');
       return;
     }
     if (!content.trim()) {
-      alert('내용을 입력해 주세요.');
+      showAlert('error', '내용을 입력해 주세요.');
       return;
     }
     if (isSubmitting) return;
     setIsSubmitting(true);
 
     try {
-      // 로그인 유저
       const {
         data: { user },
         error: authErr,
       } = await supabase.auth.getUser();
+
       if (authErr) throw authErr;
+
       if (!user) {
-        alert('로그인이 필요합니다.');
+        showAlert('error', '로그인 에러', '로그인이 필요합니다.');
         return;
       }
 
@@ -133,28 +132,31 @@ export default function Write() {
             const { error: upErr } = await supabase.storage
               .from(STORAGE_BUCKET)
               .upload(path, file, { cacheControl: '3600', upsert: false });
+
             if (upErr) return null;
+
             const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
             return pub?.publicUrl ?? null;
           })
         )
       ).filter((v): v is string => !!v); // null 제거
 
-      // community insert: 배열 컬럼 사용
       const { error } = await supabase
         .from('community')
         .insert({
           profile_id: user.id,
-          tarot_id: selectedTarotId, // 없으면 null 저장됨
+          tarot_id: selectedTarotId,
           title,
           contents: content,
-          file_urls: fileUrls.length ? fileUrls : [], // 배열로 저장
+          file_urls: fileUrls.length ? fileUrls : [],
         })
+        .select('id')
         .single();
 
       if (error) throw error;
 
-      alert('저장되었습니다.');
+      showAlert('success', '저장되었습니다.');
+
       // 초기화/이동
       setTitle('');
       setContent('');
@@ -163,7 +165,9 @@ export default function Write() {
       nav('/community');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '저장에 실패했어요.';
-      alert(msg);
+      showAlert('error', msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -328,9 +332,8 @@ export default function Write() {
                   >
                     {/* 이미지 */}
                     <div className="w-full bg-black/20">
-                      {/* object-contain으로 안전 표시, 고정 높이 비슷하게 */}
                       <img
-                        src={r.result}
+                        src={r.result ?? ''}
                         alt="tarot-result"
                         className="block w-full max-h-[320px] object-contain"
                         loading="lazy"
@@ -338,7 +341,9 @@ export default function Write() {
                     </div>
                     {/* 날짜 */}
                     <div className="px-4 py-3 flex items-center justify-between">
-                      <span className="text-white/80 text-sm">{formatDate(r.create_at)}</span>
+                      <span className="text-white/80 text-sm">
+                        {r.created_at ? formatDate(r.created_at) : '날짜 없음'}
+                      </span>
                       <span className="text-white/50 text-xs">클릭하여 첨부</span>
                     </div>
                   </button>
@@ -350,19 +355,4 @@ export default function Write() {
       )}
     </>
   );
-}
-
-/** created_dt 표시용 포맷터 */
-function formatDate(dt: string) {
-  try {
-    const d = new Date(dt);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-    return `${y}-${m}-${day} ${hh}:${mm}`;
-  } catch {
-    return dt;
-  }
 }

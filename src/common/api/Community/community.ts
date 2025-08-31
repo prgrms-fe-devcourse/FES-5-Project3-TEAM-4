@@ -49,9 +49,8 @@ async function runCommunitySelect(
 
     return { items: (data ?? []) as CommunityRow[], total: count ?? 0 };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error('[community] select error:', msg);
-    showAlert('error', '게시글 조회 실패', msg);
+    showAlert('error', '게시글 조회 실패', (err as Error).message);
+
     return { items: [], total: 0 };
   }
 }
@@ -91,4 +90,22 @@ export function selectCommunityListWithKeyword(
   options?: CommunityOptions
 ) {
   return runCommunitySelect(sortedColumn, ascending, { ...options, keyword });
+}
+
+/**
+ * community 테이블 단건 조회 (id 기준)
+ * @param id community.id
+ * @returns CommunityRow | null
+ */
+export async function selectCommunityById(id: string): Promise<CommunityRow | null> {
+  try {
+    const { data, error } = await supabase.from('community').select('*').eq('id', id).single();
+    if (error) throw error;
+
+    return (data ?? null) as CommunityRow | null;
+  } catch (err) {
+    showAlert('error', '게시글 조회 실패', (err as Error).message);
+
+    return null;
+  }
 }

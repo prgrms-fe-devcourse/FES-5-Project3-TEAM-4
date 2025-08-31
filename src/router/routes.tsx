@@ -10,6 +10,7 @@ const Tarot = lazy(() => import('@/pages/Tarot'));
 const Community = lazy(() => import('@/pages/Community'));
 const CommunityLayout = lazy(() => import('@/pages/Community/CommunityLayout'));
 const Write = lazy(() => import('@/pages/Community/Write'));
+const Detail = lazy(() => import('@/pages/Community/Detail'));
 const Mypage = lazy(() => import('@/pages/Mypage'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
@@ -51,6 +52,11 @@ export const routes = createBrowserRouter([
           {
             path: 'write',
             Component: Write,
+            handle: { showInNav: false },
+          },
+          {
+            path: ':id',
+            Component: Detail,
             handle: { showInNav: false },
           },
         ],

@@ -5,9 +5,9 @@ interface Column {
 
 export function ListHeader({
   columns = [
-    { text: '날짜', className: 'basis-[140px] shrink-0' }, // 고정 140px
-    { text: '제목', className: 'flex-1 min-w-0 pl-4' }, // 가변 (남은 공간 차지)
-    { text: '좋아요', className: 'basis-[80px] shrink-0 text-right' }, // 고정 80px
+    { text: '날짜', className: 'basis-[140px] shrink-0' },
+    { text: '제목', className: 'flex-1 min-w-0 pl-4' },
+    { text: '좋아요', className: 'basis-[80px] shrink-0 text-right' },
   ],
   className = '',
 }: {

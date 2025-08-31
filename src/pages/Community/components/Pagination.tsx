@@ -2,7 +2,7 @@ import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai';
 
 type Props = {
   total: number; // 전체 아이템 수
-  page: number; // 현재 페이지 (1-base)
+  page: number; // 현재 페이지
   pageSize: number; // 페이지당 아이템 수
   onPageChange: (p: number) => void;
   maxButtons?: number; // 가운데 숫자 버튼 최대 개수 (기본 5)
@@ -21,10 +21,10 @@ export default function Pagination({
 
   const clamp = (n: number) => Math.min(totalPages, Math.max(1, n));
 
-  // 가운데 페이지 버튼 범위 계산 (윈도우 방식)
+  // 가운데 페이지 버튼 범위 계산
   const half = Math.floor(maxButtons / 2);
   let start = Math.max(1, page - half);
-  let end = Math.min(totalPages, start + maxButtons - 1);
+  const end = Math.min(totalPages, start + maxButtons - 1);
   if (end - start + 1 < maxButtons) start = Math.max(1, end - maxButtons + 1);
 
   const pages = [];
