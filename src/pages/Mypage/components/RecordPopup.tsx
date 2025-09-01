@@ -15,6 +15,7 @@ import {
 } from '@/common/api/Record/record';
 import { useAuth } from '@/common/store/authStore';
 import { showAlert, showConfirmAlert } from '@/common/utils/sweetalert';
+import PopupBottonArea from './PopupBottonArea';
 
 //애니메이션을 보여줄 페이지 갯수
 const ANIMATE_PAGE_LENGTH = 20;
@@ -72,6 +73,7 @@ function RecordPopup({ tarotId, contents, onClose }: Props) {
       });
     }
   };
+
   const handleDelete = async () => {
     const recordData = await selectRecordByTarotId(tarotId);
     if (recordData && recordData.length > 0) {
@@ -81,53 +83,27 @@ function RecordPopup({ tarotId, contents, onClose }: Props) {
         if (res.ok) {
           showAlert('success', '삭제되었습니다!', '');
           setMode('init');
+          handlePopClose();
         } else showAlert('error', '삭제 실패', '');
       });
     }
   };
+
   const handlePopClose = () => {
     onClose();
   };
+
   return createPortal(
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/20 backdrop-blur-xl" onClick={handlePopClose} />
       <div className="relative mx-auto mt-24 w-[min(70vw)] h-[min(80vh)] rounded-2xl bg-white">
         <section id="container" className="absolute z-1 w-full h-full flex flex-col items-center">
-          <div className="w-full mb-10 flex gap-31 justify-between pt-4">
-            <div className="flex gap-5 ml-4">
-              {mode === 'edit' && (
-                <button
-                  className="text-main-white underline font-semibold hover:drop-shadow-[0_0_10px_rgba(255,255,200,0.8)] hover:scale-110 hover:no-underline"
-                  onClick={handleSave}
-                >
-                  수정
-                </button>
-              )}
-              {mode === 'init' && (
-                <button
-                  className="text-main-white underline font-semibold hover:drop-shadow-[0_0_10px_rgba(255,255,200,0.8)] hover:scale-110 hover:no-underline"
-                  onClick={handleSave}
-                >
-                  저장
-                </button>
-              )}
-              {mode === 'edit' && (
-                <button
-                  className="text-main-white  underline font-semibold hover:drop-shadow-[0_0_10px_rgba(255,223,100,0.9)] hover:scale-110 hover:no-underline"
-                  onClick={handleDelete}
-                >
-                  삭제
-                </button>
-              )}
-            </div>
-            <button
-              type="button"
-              className="mr-4 transition rounded-[50%] duration-300 hover:bg-[#C9AA78]"
-              onClick={handlePopClose}
-            >
-              <img src="/icons/cancel.svg" alt="취소 버튼 이미지" />
-            </button>
-          </div>
+          <PopupBottonArea
+            mode={mode}
+            onDelete={() => handleDelete()}
+            onPopClose={() => handlePopClose()}
+            onSave={() => handleSave()}
+          />
           <div className="w-[95%] h-[80%] flex relative">
             <div ref={pagesRef} className="w-full h-full relative">
               <div

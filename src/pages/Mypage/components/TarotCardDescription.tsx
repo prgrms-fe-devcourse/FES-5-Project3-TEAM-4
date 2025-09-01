@@ -1,31 +1,30 @@
 import type { Tables } from '@/common/api/supabase/database.types';
+import { useFilterCardName } from '@/common/store/cardStore';
 import tw from '@/common/utils/tw';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 interface Props {
   name: string | null;
   infoId: string | null;
   result: string | null;
-  imageUrl?: string | null;
   subInfo?: Tables<'tarot_info'>[] | null;
 }
 
-function TarotCardDescription({ name, infoId, result, imageUrl = '35', subInfo }: Props) {
-  const [subCard, setSubCard] = useState<Tables<'tarot_info'> | null>(null);
+function TarotCardDescription({ name, infoId, result, subInfo }: Props) {
   const [flipped, setFlipped] = useState(false);
   const descriptionRef = useRef<HTMLDivElement | null>(null);
-  const id = useId();
 
-  useEffect(() => {
-    if (subInfo) {
-      const subMatch = subInfo.filter((item) => infoId === item.parent_id);
-      if (subMatch.length > 0) {
-        setSubCard(subMatch[0]);
-      }
-    }
-  });
+  const subCard = useMemo(
+    () => subInfo?.find((it) => it.parent_id === infoId) ?? null,
+    [subInfo, infoId]
+  );
 
-  const handleSwap = () => setFlipped((prev) => !prev);
+  const mainCardInfo = useFilterCardName(name ?? null);
+  const subCardInfo = useFilterCardName(subCard?.name ?? null);
+
+  const handleSwap = () => {
+    setFlipped((prev) => !prev);
+  };
 
   const glow =
     'hover:brightness-125 hover:scale-105 ' +
@@ -35,21 +34,23 @@ function TarotCardDescription({ name, infoId, result, imageUrl = '35', subInfo }
 
   if (subCard) {
     return (
-      <div className="relative min-h-[30%] flex gap-10 w-[95%]" key={id}>
+      <div className="relative min-h-[30%] flex gap-10 w-[95%]">
         <div className="flex relative min-w-[29%]">
           <img
-            src={`/images/${imageUrl}.png`}
-            alt="타로카드1"
+            src={mainCardInfo[0]?.image_url}
+            alt={`${mainCardInfo[0]?.name} 카드`}
             onClick={handleSwap}
+            loading="lazy"
             className={tw(
               `h-full object-contain  translate-x-1 ${glow} hover:animate-pulse`,
               flipped ? 'z-50' : 'z-0'
             )}
           />
           <img
-            src={`/images/${imageUrl}.png`}
-            alt="타로카드2"
+            src={subCardInfo[0]?.image_url}
+            alt={`${subCardInfo[0]?.name} 카드`}
             onClick={handleSwap}
+            loading="lazy"
             className={tw(
               `h-full object-contain -translate-x-1 -ml-14 ${glow} hover:animate-pulse`,
               flipped ? 'z-0' : 'z-50'
@@ -67,11 +68,12 @@ function TarotCardDescription({ name, infoId, result, imageUrl = '35', subInfo }
   }
 
   return (
-    <div className="relative min-h-[30%] flex gap-10 w-[95%]" key={id}>
+    <div className="relative min-h-[30%] flex gap-10 w-[95%]">
       <div className="flex relative min-w-[29%]">
         <img
-          src={`/images/${imageUrl}.png`}
-          alt="타로카드1"
+          src={mainCardInfo[0]?.image_url}
+          alt={`${mainCardInfo[0]?.name} 카드`}
+          loading="lazy"
           className="h-full object-contain translate-x-1 hover:brightness-125 hover:drop-shadow-[0_0_15px_rgba(255,255,200,0.8)] hover:scale-105 hover:animate-pulse"
         />
       </div>
