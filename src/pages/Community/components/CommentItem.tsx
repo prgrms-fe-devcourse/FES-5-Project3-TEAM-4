@@ -18,7 +18,7 @@ type Props = {
   isAuthed: boolean;
   depth?: number;
   postId: string; // community id
-
+  anonMap: Record<string, string>;
   // 화면 갱신 핸들러
   onReplied: () => Promise<void> | void;
   onEdited: () => Promise<void> | void;
@@ -35,11 +35,12 @@ export default function CommentItem({
   onReplied,
   onEdited,
   onDeleted,
+  anonMap,
 }: Props) {
   const isOwner = !!currentUserId && currentUserId === comment.profile_id;
   const isWriter = comment.profile_id === postAuthorId;
 
-  const displayName = isWriter ? '글쓴이' : (comment.authorName ?? '익명');
+  const displayName = isWriter ? '글쓴이' : (anonMap[comment.profile_id] ?? '익명');
   // 1뎁스 제한: parent_id가 없을 때만 답글 허용
   const canReply = !comment.parent_id;
 
@@ -187,6 +188,7 @@ export default function CommentItem({
               comment={child}
               postAuthorId={postAuthorId}
               currentUserId={currentUserId}
+              anonMap={anonMap}
               isAuthed={isAuthed}
               postId={postId}
               onReplied={onReplied}

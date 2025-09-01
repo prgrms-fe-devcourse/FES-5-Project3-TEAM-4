@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { deleteCommunity, selectCommunityById } from '@/common/api/Community/community';
 import type { CommunityRow, CommunityRowUI } from '@/common/types/community';
@@ -8,13 +8,7 @@ import supabase from '@/common/api/supabase/supabase';
 import { showAlert, showConfirmAlert } from '@/common/utils/sweetalert';
 import { FiArrowLeft } from 'react-icons/fi';
 import type { CommentNode } from '@/common/types/comment';
-import {
-  insertComment,
-  selectCommentsByCommunityId,
-  // softDeleteComment,
-  // updateComment,
-} from '@/common/api/Community/comment';
-// import { formatDate } from '@/common/utils/format';
+import { fetchCommentsFlat, insertComment } from '@/common/api/Community/comment';
 import CommentItem from './components/CommentItem';
 
 const toDate10 = (s?: string | null) => (s ? s.slice(0, 10) : '');
@@ -38,46 +32,61 @@ export default function CommunityDetail() {
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null); // 로그인 정보 (사용자 id) 보관용
 
-  // 로그인 사용자 / 수정권한 체크
-  useEffect(() => {
-    (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setIsAuthed(Boolean(user));
-      if (row && user) setCanEdit(user.id === row.profile_id);
-    })();
-  }, [row]);
+  const [anonMap, setAnonMap] = useState<Record<string, string>>({});
 
-  // 글 상세 fetch
-  useEffect(() => {
-    if (row || !id) return;
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await selectCommunityById(id);
-        if (!data) setError('게시글을 찾을 수 없습니다.');
-        setRow(data);
-      } catch {
-        setError('게시글을 불러오지 못했습니다.');
-      } finally {
-        setLoading(false);
+  // 트리 빌더(간단 버전) — 페이지 안에 추가
+  function buildTree(
+    rows: Array<{
+      id: string;
+      community_id: string;
+      profile_id: string;
+      parent_id: string | null;
+      contents: string | null;
+      is_deleted: boolean;
+      created_at: string | null;
+    }>
+  ): CommentNode[] {
+    const map = new Map<string, CommentNode>();
+    const roots: CommentNode[] = [];
+    rows.forEach((r) => map.set(r.id, { ...r, children: [] }));
+
+    rows.forEach((r) => {
+      const node = map.get(r.id)!;
+      if (r.parent_id) {
+        const parent = map.get(r.parent_id);
+        if (parent) parent.children!.push(node);
+        else roots.push(node);
+      } else {
+        roots.push(node);
       }
-    })();
-  }, [id, row]);
+    });
+    return roots;
+  }
 
-  // ✅ 댓글 fetch
-  useEffect(() => {
-    if (!id) return;
-    (async () => {
-      setCommentsLoading(true);
-      const nodes = await selectCommentsByCommunityId(id);
-      setComments(nodes);
-      setCommentsLoading(false);
-    })();
-  }, [id]);
+  // 댓글 새로고침 로직을 함수로 분리
+  const refetchCommentsAndAnon = useCallback(async () => {
+    if (!id || !row) return;
 
-  // ✅ 댓글 등록
+    // 1) 평탄 데이터
+    const flat = await fetchCommentsFlat(id);
+
+    // 2) 익명 매핑 (글쓴이 제외, 첫 등장 순서대로)
+    const orderAsc = flat
+      .slice()
+      .sort((a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''));
+    const map = new Map<string, string>();
+    let num = 1;
+    for (const r of orderAsc) {
+      if (r.profile_id === row.profile_id) continue; // 글쓴이 제외
+      if (!map.has(r.profile_id)) map.set(r.profile_id, `익명${num++}`);
+    }
+    setAnonMap(Object.fromEntries(map));
+
+    // 3) 트리로 변환 후 상태 저장
+    setComments(buildTree(flat));
+  }, [id, row]); // ★ deps 추가
+
+  // 댓글 등록
   const onSubmitComment = async () => {
     if (!id) return;
     if (!isAuthed) {
@@ -98,8 +107,7 @@ export default function CommunityDetail() {
 
     // 성공 → 입력 비우고, 댓글 목록 리프레시
     setCommentText('');
-    const nodes = await selectCommentsByCommunityId(id);
-    setComments(nodes);
+    refetchCommentsAndAnon();
   };
 
   const openViewer = (idx: number) => {
@@ -138,19 +146,9 @@ export default function CommunityDetail() {
     return () => window.removeEventListener('keydown', onKey);
   }, [viewerOpen, images.length]);
 
+  // 글 상세 fetch
   useEffect(() => {
-    // 로그인 유저가 작성자인지 확인
-    (async () => {
-      if (!row) return;
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCanEdit(Boolean(user && user.id === row.profile_id));
-    })();
-  }, [row]);
-
-  useEffect(() => {
-    if (row || !id) return;
+    if (!id) return;
     (async () => {
       try {
         setLoading(true);
@@ -163,19 +161,46 @@ export default function CommunityDetail() {
         setLoading(false);
       }
     })();
-  }, [id, row]);
+  }, [id]);
 
-  // 로그인 여부/수정권한 체크 useEffect에서 사용자 id도 세팅
+  // 로그인 여부/사용자 id/수정 권한 한 번에 처리
   useEffect(() => {
     (async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       setIsAuthed(Boolean(user));
       setCurrentUserId(user?.id ?? null);
-      if (row && user) setCanEdit(user.id === row.profile_id);
+
+      if (row) {
+        setCanEdit(Boolean(user && user.id === row.profile_id));
+      }
     })();
   }, [row]);
+
+  // 로그인 상태 변화 감지
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setIsAuthed(Boolean(user));
+      setCurrentUserId(user?.id ?? null);
+      if (row) setCanEdit(Boolean(user && user.id === row.profile_id));
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [row]);
+
+  // 댓글 fetch
+  useEffect(() => {
+    if (!id || !row) return;
+    (async () => {
+      setCommentsLoading(true);
+      await refetchCommentsAndAnon();
+      setCommentsLoading(false);
+    })();
+  }, [id, row, refetchCommentsAndAnon]); // 함수 자체를 deps 로
 
   const onClickEdit = () => {
     nav(`/community/edit/${row!.id}`, { state: { row } });
@@ -412,20 +437,18 @@ export default function CommunityDetail() {
               postId={row.id}
               currentUserId={currentUserId}
               postAuthorId={row.profile_id}
+              anonMap={anonMap}
               onReplied={async () => {
                 if (!id) return;
-                const refreshed = await selectCommentsByCommunityId(id);
-                setComments(refreshed);
+                await refetchCommentsAndAnon();
               }}
               onEdited={async () => {
                 if (!id) return;
-                const refreshed = await selectCommentsByCommunityId(id);
-                setComments(refreshed);
+                await refetchCommentsAndAnon();
               }}
               onDeleted={async () => {
                 if (!id) return;
-                const refreshed = await selectCommentsByCommunityId(id);
-                setComments(refreshed);
+                await refetchCommentsAndAnon();
               }}
             />
           ))}
@@ -434,181 +457,3 @@ export default function CommunityDetail() {
     </section>
   );
 }
-
-/* 글 카드 컴포넌트 TODO: api 데이터로 */
-// function CommentCard({
-//   comment,
-//   isAuthed,
-//   postAuthorId,
-//   depth = 0,
-//   currentUserId,
-//   onReplied,
-//   onEdited,
-//   onDeleted,
-// }: {
-//   comment: CommentNode;
-//   isAuthed: boolean;
-//   depth?: number;
-//   postAuthorId: string;
-//   currentUserId: string | null;
-//   onReplied: () => Promise<void> | void;
-//   onEdited: () => Promise<void> | void;
-//   onDeleted: () => Promise<void> | void;
-// }) {
-//   const isOwner = !!currentUserId && currentUserId === comment.profile_id;
-//   const isWriter = !!postAuthorId && String(postAuthorId) === String(comment.profile_id);
-//   const displayName = isWriter ? '글쓴이' : (comment.authorName ?? '익명');
-
-//   // 로컬 상태: 답글/수정 모드
-//   const [replyOpen, setReplyOpen] = useState(false);
-//   const [editOpen, setEditOpen] = useState(false);
-//   const [replyText, setReplyText] = useState('');
-//   const [editText, setEditText] = useState(comment.contents ?? '');
-
-//   useEffect(() => {
-//     if (comment.is_deleted && replyOpen) setReplyOpen(false);
-//   }, [comment.is_deleted, replyOpen]);
-
-//   const submitReply = async () => {
-//     if (!isAuthed) return showAlert('error', '로그인이 필요합니다.');
-//     if (depth !== 0) return;
-//     const text = replyText.trim();
-//     if (!text) return showAlert('error', '내용을 입력해 주세요.');
-//     const saved = await insertComment({
-//       community_id: comment.community_id,
-//       contents: text,
-//       parent_id: comment.id,
-//     });
-//     if (saved) {
-//       setReplyText('');
-//       setReplyOpen(false);
-//       await onReplied();
-//     }
-//   };
-
-//   const submitEdit = async () => {
-//     if (!isOwner) return;
-//     const text = editText.trim();
-//     if (!text) return showAlert('error', '내용을 입력해 주세요.');
-//     const ok = await updateComment(comment.id, text);
-//     if (ok) {
-//       setEditOpen(false);
-//       await onEdited();
-//     }
-//   };
-
-//   const remove = async () => {
-//     if (!isOwner) return;
-//     const ok = await softDeleteComment({ comment_id: comment.id });
-//     if (ok) await onDeleted();
-//   };
-
-//   return (
-//     <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md p-4">
-//       {/* 헤더 */}
-//       <div className="flex items-center justify-between text-sm text-white/70">
-//         <div className="flex items-center gap-2">
-//           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
-//             👤
-//           </span>
-//           <span>{displayName}</span>
-//           <span className="text-white/40">·</span>
-//           <span>{formatDate(comment.created_at ?? '')}</span>
-//         </div>
-
-//         <div className="flex items-center gap-3">
-//           {/* 답글 */}
-//           {!comment.is_deleted && depth === 0 && (
-//             <button
-//               className={`hover:text-white cursor-pointer ${!isAuthed ? 'opacity-50 cursor-not-allowed' : ''}`}
-//               onClick={() => isAuthed && setReplyOpen((v) => !v)}
-//             >
-//               답글
-//             </button>
-//           )}
-
-//           {/* 수정/삭제: 소유자만 */}
-//           {isOwner && !comment.is_deleted && (
-//             <>
-//               <button
-//                 className="hover:text-white cursor-pointer"
-//                 onClick={() => setEditOpen((v) => !v)}
-//               >
-//                 수정
-//               </button>
-//               <button className="hover:text-white cursor-pointer" onClick={remove}>
-//                 삭제
-//               </button>
-//             </>
-//           )}
-//         </div>
-//       </div>
-
-//       {/* 본문 (수정모드가 아니고, 삭제된 댓글이면 안내) */}
-//       {!editOpen && (
-//         <div className="mt-3 whitespace-pre-wrap text-white/85">
-//           {comment.is_deleted ? '삭제된 댓글입니다.' : (comment.contents ?? '')}
-//         </div>
-//       )}
-
-//       {/* 수정 폼 */}
-//       {editOpen && (
-//         <div className="mt-3 space-y-2">
-//           <textarea
-//             rows={3}
-//             value={editText}
-//             onChange={(e) => setEditText(e.currentTarget.value)}
-//             className="w-full resize-none rounded-xl bg-transparent border border-white/20 px-4 py-3 text-sm text-white/90 focus-visible:outline-0 focus-visible:ring-2 focus-visible:ring-white/40"
-//           />
-//           <div className="flex gap-2 justify-end">
-//             <Button type="button" variant="ghost" size="sm" onClick={() => setEditOpen(false)}>
-//               취소
-//             </Button>
-//             <Button type="button" variant="primary" size="sm" onClick={submitEdit}>
-//               저장
-//             </Button>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* 답글 폼 */}
-//       {depth === 0 && replyOpen && (
-//         <div className="mt-3 space-y-2">
-//           <textarea
-//             rows={3}
-//             value={replyText}
-//             onChange={(e) => setReplyText(e.currentTarget.value)}
-//             placeholder="답글을 입력해 주세요"
-//             className="w-full resize-none rounded-xl bg-transparent border border-white/20 px-4 py-3 text-sm text-white/90 placeholder:text-white/50 focus-visible:outline-0 focus-visible:ring-2 focus-visible:ring-white/40"
-//           />
-//           <div className="flex gap-2 justify-end">
-//             <Button type="button" variant="ghost" size="sm" onClick={() => setReplyOpen(false)}>
-//               취소
-//             </Button>
-//             <Button type="button" variant="primary" size="sm" onClick={submitReply}>
-//               등록
-//             </Button>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* 자식(대댓글) */}
-//       {comment.children && comment.children.length > 0 && (
-//         <div className="mt-3 space-y-3 pl-6 border-l border-white/15">
-//           {comment.children.map((child) => (
-//             <CommentItem
-//               key={child.id}
-//               comment={child}
-//               depth={depth + 1}
-//               isAuthed={isAuthed}
-//               currentUserId={currentUserId}
-//               onReplied={onReplied}
-//               onEdited={onEdited}
-//               onDeleted={onDeleted}
-//             />
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
