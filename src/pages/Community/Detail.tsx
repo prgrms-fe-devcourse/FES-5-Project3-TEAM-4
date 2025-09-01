@@ -7,14 +7,15 @@ import { Button } from '@/common/components/Button';
 import supabase from '@/common/api/supabase/supabase';
 import { showAlert, showConfirmAlert } from '@/common/utils/sweetalert';
 import { FiArrowLeft } from 'react-icons/fi';
-
-type Comment = {
-  id: string;
-  author: string;
-  created_at: string;
-  contents: string;
-  children?: Comment[];
-};
+import type { CommentNode } from '@/common/types/comment';
+import {
+  insertComment,
+  selectCommentsByCommunityId,
+  // softDeleteComment,
+  // updateComment,
+} from '@/common/api/Community/comment';
+// import { formatDate } from '@/common/utils/format';
+import CommentItem from './components/CommentItem';
 
 const toDate10 = (s?: string | null) => (s ? s.slice(0, 10) : '');
 
@@ -30,6 +31,76 @@ export default function CommunityDetail() {
 
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [isAuthed, setIsAuthed] = useState(false);
+
+  const [commentText, setCommentText] = useState('');
+  const [comments, setComments] = useState<CommentNode[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null); // 로그인 정보 (사용자 id) 보관용
+
+  // 로그인 사용자 / 수정권한 체크
+  useEffect(() => {
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setIsAuthed(Boolean(user));
+      if (row && user) setCanEdit(user.id === row.profile_id);
+    })();
+  }, [row]);
+
+  // 글 상세 fetch
+  useEffect(() => {
+    if (row || !id) return;
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await selectCommunityById(id);
+        if (!data) setError('게시글을 찾을 수 없습니다.');
+        setRow(data);
+      } catch {
+        setError('게시글을 불러오지 못했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id, row]);
+
+  // ✅ 댓글 fetch
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      setCommentsLoading(true);
+      const nodes = await selectCommentsByCommunityId(id);
+      setComments(nodes);
+      setCommentsLoading(false);
+    })();
+  }, [id]);
+
+  // ✅ 댓글 등록
+  const onSubmitComment = async () => {
+    if (!id) return;
+    if (!isAuthed) {
+      showAlert('error', '로그인이 필요합니다.');
+      return;
+    }
+    const text = commentText.trim();
+    if (!text) {
+      showAlert('error', '댓글 내용을 입력해 주세요.');
+      return;
+    }
+
+    const saved = await insertComment({
+      community_id: id,
+      contents: text,
+    });
+    if (!saved) return;
+
+    // 성공 → 입력 비우고, 댓글 목록 리프레시
+    setCommentText('');
+    const nodes = await selectCommentsByCommunityId(id);
+    setComments(nodes);
+  };
 
   const openViewer = (idx: number) => {
     setViewerIndex(idx);
@@ -78,31 +149,6 @@ export default function CommunityDetail() {
     })();
   }, [row]);
 
-  // TODO: 실제 데이터로 교체
-  const [commentText, setCommentText] = useState('');
-  const [comments] = useState<Comment[]>([
-    {
-      id: 'c1',
-      author: '익명',
-      created_at: '2025-08-24',
-      contents: '익명 댓글 예시 텍스트…',
-      children: [
-        {
-          id: 'c1-1',
-          author: '익명',
-          created_at: '2025-08-24',
-          contents: '대댓글 예시 텍스트…',
-        },
-      ],
-    },
-    {
-      id: 'c2',
-      author: '익명',
-      created_at: '2025-08-24',
-      contents: '두 번째 댓글 예시…',
-    },
-  ]);
-
   useEffect(() => {
     if (row || !id) return;
     (async () => {
@@ -118,6 +164,18 @@ export default function CommunityDetail() {
       }
     })();
   }, [id, row]);
+
+  // 로그인 여부/수정권한 체크 useEffect에서 사용자 id도 세팅
+  useEffect(() => {
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setIsAuthed(Boolean(user));
+      setCurrentUserId(user?.id ?? null);
+      if (row && user) setCanEdit(user.id === row.profile_id);
+    })();
+  }, [row]);
 
   const onClickEdit = () => {
     nav(`/community/edit/${row!.id}`, { state: { row } });
@@ -182,7 +240,7 @@ export default function CommunityDetail() {
                 <img
                   src={src}
                   alt={`attachment-${i + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                  className="cursor-pointer w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
                   loading="lazy"
                 />
               </button>
@@ -258,7 +316,7 @@ export default function CommunityDetail() {
                     key={thumb + i}
                     type="button"
                     onClick={() => setViewerIndex(i)}
-                    className={`h-14 w-20 rounded-md overflow-hidden ring-1
+                    className={`h-14 w-20 rounded-md overflow-hidden ring-1 cursor-pointer 
                 ${i === viewerIndex ? 'ring-white' : 'ring-white/20 hover:ring-white/40'}`}
                   >
                     <img
@@ -305,7 +363,7 @@ export default function CommunityDetail() {
         </div>
       </article>
 
-      {/* 댓글 작성 */}
+      {/* 댓글 작성 (루트 댓글) */}
       <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md p-4">
         <label htmlFor="comment" className="sr-only">
           댓글 입력
@@ -315,87 +373,242 @@ export default function CommunityDetail() {
             id="comment"
             rows={3}
             maxLength={500}
-            placeholder="익명으로 마음을 전해요: 따뜻한 댓글을 남겨 주세요"
+            placeholder={
+              isAuthed
+                ? '익명으로 마음을 전해요: 따뜻한 댓글을 남겨 주세요'
+                : '로그인 후 댓글을 작성할 수 있어요'
+            }
             value={commentText}
             onChange={(e) => setCommentText(e.currentTarget.value)}
-            className="w-full resize-none rounded-xl bg-transparent border border-white/20 px-4 py-3 text-sm text-white/90 placeholder:text-white/50 focus-visible:outline-0 focus-visible:ring-2 focus-visible:ring-white/40"
+            disabled={!isAuthed}
+            className="w-full resize-none rounded-xl bg-transparent border border-white/20 px-4 py-3 text-sm text-white/90 placeholder:text-white/50 focus-visible:outline-0 focus-visible:ring-2 focus-visible:ring-white/40 disabled:opacity-50"
           />
           <div className="absolute right-3 bottom-2 text-xs text-white/60">
             {commentText.length}/500
           </div>
         </div>
         <div className="mt-3 flex justify-end">
-          <Button
-            type="button"
-            onClick={() => {
-              console.log('댓글 등록', commentText);
-              setCommentText('');
-            }}
-            variant="primary"
-          >
-            등록
+          <Button type="button" onClick={onSubmitComment} variant="primary" disabled={!isAuthed}>
+            {isAuthed ? '등록' : '로그인 필요'}
           </Button>
         </div>
       </div>
 
       {/* 댓글 리스트 */}
-      <div className="space-y-4">
-        {comments.map((c) => (
-          <CommentCard key={c.id} comment={c} />
-        ))}
-      </div>
+      {commentsLoading ? (
+        <div className="text-white/70">댓글 불러오는 중…</div>
+      ) : comments.length === 0 ? (
+        <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md p-6 text-white/60 text-sm">
+          아직 댓글이 없어요. 첫 댓글을 남겨보세요!
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {comments.map((c) => (
+            <CommentItem
+              key={c.id}
+              comment={c}
+              depth={0}
+              isAuthed={isAuthed}
+              postId={row.id}
+              currentUserId={currentUserId}
+              postAuthorId={row.profile_id}
+              onReplied={async () => {
+                if (!id) return;
+                const refreshed = await selectCommentsByCommunityId(id);
+                setComments(refreshed);
+              }}
+              onEdited={async () => {
+                if (!id) return;
+                const refreshed = await selectCommentsByCommunityId(id);
+                setComments(refreshed);
+              }}
+              onDeleted={async () => {
+                if (!id) return;
+                const refreshed = await selectCommentsByCommunityId(id);
+                setComments(refreshed);
+              }}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
 /* 글 카드 컴포넌트 TODO: api 데이터로 */
-function CommentCard({ comment }: { comment: Comment }) {
-  return (
-    <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md p-4">
-      <div className="flex items-center justify-between text-sm text-white/70">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
-            👤
-          </span>
-          <span>{comment.author}</span>
-          <span className="text-white/40">·</span>
-          <span>{comment.created_at}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            className="hover:text-white cursor-pointer"
-            onClick={() => console.log('수정', comment.id)}
-          >
-            수정
-          </button>
-          <button
-            className="hover:text-white cursor-pointer"
-            onClick={() => console.log('삭제', comment.id)}
-          >
-            삭제
-          </button>
-        </div>
-      </div>
+// function CommentCard({
+//   comment,
+//   isAuthed,
+//   postAuthorId,
+//   depth = 0,
+//   currentUserId,
+//   onReplied,
+//   onEdited,
+//   onDeleted,
+// }: {
+//   comment: CommentNode;
+//   isAuthed: boolean;
+//   depth?: number;
+//   postAuthorId: string;
+//   currentUserId: string | null;
+//   onReplied: () => Promise<void> | void;
+//   onEdited: () => Promise<void> | void;
+//   onDeleted: () => Promise<void> | void;
+// }) {
+//   const isOwner = !!currentUserId && currentUserId === comment.profile_id;
+//   const isWriter = !!postAuthorId && String(postAuthorId) === String(comment.profile_id);
+//   const displayName = isWriter ? '글쓴이' : (comment.authorName ?? '익명');
 
-      <div className="mt-3 whitespace-pre-wrap text-white/85">{comment.contents}</div>
+//   // 로컬 상태: 답글/수정 모드
+//   const [replyOpen, setReplyOpen] = useState(false);
+//   const [editOpen, setEditOpen] = useState(false);
+//   const [replyText, setReplyText] = useState('');
+//   const [editText, setEditText] = useState(comment.contents ?? '');
 
-      {comment.children && comment.children.length > 0 && (
-        <div className="mt-3 space-y-3 pl-6 border-l border-white/15">
-          {comment.children.map((child) => (
-            <div key={child.id} className="rounded-xl border border-white/15 bg-white/5 p-3">
-              <div className="flex items-center gap-2 text-sm text-white/70">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10">
-                  👤
-                </span>
-                <span>{child.author}</span>
-                <span className="text-white/40">·</span>
-                <span>{child.created_at}</span>
-              </div>
-              <div className="mt-2 whitespace-pre-wrap text-white/85">{child.contents}</div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+//   useEffect(() => {
+//     if (comment.is_deleted && replyOpen) setReplyOpen(false);
+//   }, [comment.is_deleted, replyOpen]);
+
+//   const submitReply = async () => {
+//     if (!isAuthed) return showAlert('error', '로그인이 필요합니다.');
+//     if (depth !== 0) return;
+//     const text = replyText.trim();
+//     if (!text) return showAlert('error', '내용을 입력해 주세요.');
+//     const saved = await insertComment({
+//       community_id: comment.community_id,
+//       contents: text,
+//       parent_id: comment.id,
+//     });
+//     if (saved) {
+//       setReplyText('');
+//       setReplyOpen(false);
+//       await onReplied();
+//     }
+//   };
+
+//   const submitEdit = async () => {
+//     if (!isOwner) return;
+//     const text = editText.trim();
+//     if (!text) return showAlert('error', '내용을 입력해 주세요.');
+//     const ok = await updateComment(comment.id, text);
+//     if (ok) {
+//       setEditOpen(false);
+//       await onEdited();
+//     }
+//   };
+
+//   const remove = async () => {
+//     if (!isOwner) return;
+//     const ok = await softDeleteComment({ comment_id: comment.id });
+//     if (ok) await onDeleted();
+//   };
+
+//   return (
+//     <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md p-4">
+//       {/* 헤더 */}
+//       <div className="flex items-center justify-between text-sm text-white/70">
+//         <div className="flex items-center gap-2">
+//           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
+//             👤
+//           </span>
+//           <span>{displayName}</span>
+//           <span className="text-white/40">·</span>
+//           <span>{formatDate(comment.created_at ?? '')}</span>
+//         </div>
+
+//         <div className="flex items-center gap-3">
+//           {/* 답글 */}
+//           {!comment.is_deleted && depth === 0 && (
+//             <button
+//               className={`hover:text-white cursor-pointer ${!isAuthed ? 'opacity-50 cursor-not-allowed' : ''}`}
+//               onClick={() => isAuthed && setReplyOpen((v) => !v)}
+//             >
+//               답글
+//             </button>
+//           )}
+
+//           {/* 수정/삭제: 소유자만 */}
+//           {isOwner && !comment.is_deleted && (
+//             <>
+//               <button
+//                 className="hover:text-white cursor-pointer"
+//                 onClick={() => setEditOpen((v) => !v)}
+//               >
+//                 수정
+//               </button>
+//               <button className="hover:text-white cursor-pointer" onClick={remove}>
+//                 삭제
+//               </button>
+//             </>
+//           )}
+//         </div>
+//       </div>
+
+//       {/* 본문 (수정모드가 아니고, 삭제된 댓글이면 안내) */}
+//       {!editOpen && (
+//         <div className="mt-3 whitespace-pre-wrap text-white/85">
+//           {comment.is_deleted ? '삭제된 댓글입니다.' : (comment.contents ?? '')}
+//         </div>
+//       )}
+
+//       {/* 수정 폼 */}
+//       {editOpen && (
+//         <div className="mt-3 space-y-2">
+//           <textarea
+//             rows={3}
+//             value={editText}
+//             onChange={(e) => setEditText(e.currentTarget.value)}
+//             className="w-full resize-none rounded-xl bg-transparent border border-white/20 px-4 py-3 text-sm text-white/90 focus-visible:outline-0 focus-visible:ring-2 focus-visible:ring-white/40"
+//           />
+//           <div className="flex gap-2 justify-end">
+//             <Button type="button" variant="ghost" size="sm" onClick={() => setEditOpen(false)}>
+//               취소
+//             </Button>
+//             <Button type="button" variant="primary" size="sm" onClick={submitEdit}>
+//               저장
+//             </Button>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* 답글 폼 */}
+//       {depth === 0 && replyOpen && (
+//         <div className="mt-3 space-y-2">
+//           <textarea
+//             rows={3}
+//             value={replyText}
+//             onChange={(e) => setReplyText(e.currentTarget.value)}
+//             placeholder="답글을 입력해 주세요"
+//             className="w-full resize-none rounded-xl bg-transparent border border-white/20 px-4 py-3 text-sm text-white/90 placeholder:text-white/50 focus-visible:outline-0 focus-visible:ring-2 focus-visible:ring-white/40"
+//           />
+//           <div className="flex gap-2 justify-end">
+//             <Button type="button" variant="ghost" size="sm" onClick={() => setReplyOpen(false)}>
+//               취소
+//             </Button>
+//             <Button type="button" variant="primary" size="sm" onClick={submitReply}>
+//               등록
+//             </Button>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* 자식(대댓글) */}
+//       {comment.children && comment.children.length > 0 && (
+//         <div className="mt-3 space-y-3 pl-6 border-l border-white/15">
+//           {comment.children.map((child) => (
+//             <CommentItem
+//               key={child.id}
+//               comment={child}
+//               depth={depth + 1}
+//               isAuthed={isAuthed}
+//               currentUserId={currentUserId}
+//               onReplied={onReplied}
+//               onEdited={onEdited}
+//               onDeleted={onDeleted}
+//             />
+//           ))}
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
