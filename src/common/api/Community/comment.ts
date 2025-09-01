@@ -116,34 +116,11 @@ export async function updateComment(id: string, contents: string) {
   return true;
 }
 
-export async function deleteComment(id: string) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    showAlert('error', '로그인이 필요합니다.');
-    return false;
-  }
-  const { error } = await supabase
-    .from('comment')
-    .update({ is_deleted: true, contents: '(삭제된 댓글입니다)' })
-    .eq('id', id)
-    .eq('profile_id', user.id) // 본인만 삭제
-    .single();
-
-  if (error) {
-    console.error('deleteComment', error.message);
-    showAlert('error', '댓글 삭제 실패', error.message);
-    return false;
-  }
-  return true;
-}
-
 /** 댓글 삭제(소프트 삭제) — is_deleted = true (소유자만) */
 // comment.ts
 
 /** 댓글 삭제: 자식 유무/대댓글 여부에 따라 soft/hard delete */
-export async function softDeleteComment(params: { comment_id: string }): Promise<boolean> {
+export async function deleteComment(params: { comment_id: string }): Promise<boolean> {
   try {
     const {
       data: { user },

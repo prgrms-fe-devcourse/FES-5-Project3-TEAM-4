@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/common/components/Button';
 import { showAlert } from '@/common/utils/sweetalert';
 import type { Tables } from '@/common/api/supabase/database.types';
-import { deleteComment, insertComment, updateComment } from '@/common/api/Community/comment';
+import { insertComment, updateComment, deleteComment } from '@/common/api/Community/comment';
 import { formatDate } from '@/common/utils/format';
 
 export type CommentNode = Tables<'comment'> & {
@@ -39,9 +39,7 @@ export default function CommentItem({
 }: Props) {
   const isOwner = !!currentUserId && currentUserId === comment.profile_id;
   const isWriter = comment.profile_id === postAuthorId;
-
   const displayName = isWriter ? '글쓴이' : (anonMap[comment.profile_id] ?? '익명');
-  // 1뎁스 제한: parent_id가 없을 때만 답글 허용
   const canReply = !comment.parent_id;
 
   const [replyOpen, setReplyOpen] = useState(false);
@@ -81,7 +79,7 @@ export default function CommentItem({
 
   const remove = async () => {
     if (!isOwner) return;
-    const ok = await deleteComment(comment.id);
+    const ok = await deleteComment({ comment_id: comment.id });
     if (ok) await onDeleted();
   };
 

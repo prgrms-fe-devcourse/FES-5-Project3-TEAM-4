@@ -152,7 +152,6 @@ export default function Community() {
 
       <ListHeader />
 
-      {/* todo 이거 너무 깜빡이는 느낌. 스켈레톤 ui 넣어야하나? */}
       {loading ? (
         <div className="mt-6 text-white/70">로딩 중…</div>
       ) : (
