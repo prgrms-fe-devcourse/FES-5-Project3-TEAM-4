@@ -10,8 +10,7 @@ import { FiArrowLeft } from 'react-icons/fi';
 import type { CommentNode } from '@/common/types/comment';
 import { fetchCommentsFlat, insertComment } from '@/common/api/Community/comment';
 import CommentItem from './components/CommentItem';
-
-const toDate10 = (s?: string | null) => (s ? s.slice(0, 10) : '');
+import { formatDate } from '@/common/utils/format';
 
 export default function CommunityDetail() {
   const nav = useNavigate();
@@ -34,7 +33,7 @@ export default function CommunityDetail() {
 
   const [anonMap, setAnonMap] = useState<Record<string, string>>({});
 
-  // 트리 빌더(간단 버전) — 페이지 안에 추가
+  // 트리 빌더(간단 버전)
   function buildTree(
     rows: Array<{
       id: string;
@@ -63,7 +62,7 @@ export default function CommunityDetail() {
     return roots;
   }
 
-  // 댓글 새로고침 로직을 함수로 분리
+  // 댓글 새로고침 로직
   const refetchCommentsAndAnon = useCallback(async () => {
     if (!id || !row) return;
 
@@ -84,7 +83,7 @@ export default function CommunityDetail() {
 
     // 3) 트리로 변환 후 상태 저장
     setComments(buildTree(flat));
-  }, [id, row]); // ★ deps 추가
+  }, [id, row]);
 
   // 댓글 등록
   const onSubmitComment = async () => {
@@ -93,6 +92,7 @@ export default function CommunityDetail() {
       showAlert('error', '로그인이 필요합니다.');
       return;
     }
+
     const text = commentText.trim();
     if (!text) {
       showAlert('error', '댓글 내용을 입력해 주세요.');
@@ -121,9 +121,7 @@ export default function CommunityDetail() {
   }, [row]);
 
   const closeViewer = () => setViewerOpen(false);
-
   const showPrev = () => setViewerIndex((i) => (i - 1 + images.length) % images.length);
-
   const showNext = () => setViewerIndex((i) => (i + 1) % images.length);
 
   // ESC / 좌우 방향키
@@ -265,7 +263,7 @@ export default function CommunityDetail() {
       <div className="rounded-xl bg-white/10 backdrop-blur-md px-4 py-3 border border-white/15">
         <div className="flex items-center gap-3 text-sm">
           <span className="px-2 py-0.5 rounded-md bg-white/10 text-white/80">
-            {toDate10(row.created_at)}
+            {formatDate(row.created_at)}
           </span>
           <div className="flex-1 rounded-md bg-transparent text-white/90">
             {row.title ?? '제목 없음'}
@@ -356,7 +354,7 @@ export default function CommunityDetail() {
               )}
             </div>
 
-            {/* 하단 인덱스/썸네일(선택) */}
+            {/* 하단 인덱스/썸네일 */}
             {images.length > 1 && (
               <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                 {images.map((thumb, i) => (

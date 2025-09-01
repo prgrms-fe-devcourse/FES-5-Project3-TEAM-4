@@ -128,7 +128,7 @@ export default function Community() {
   // UI에 필요한 형태
   const listForUI: Post[] = rows.map((r) => ({
     id: r.id,
-    date: formatDate(r.created_at ?? ''),
+    date: formatDate(r.created_at),
     title: r.title ?? '',
     likes: r.likes ?? 0,
     liked: !!r.likedByMe,

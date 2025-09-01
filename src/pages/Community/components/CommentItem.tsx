@@ -101,7 +101,7 @@ export default function CommentItem({
 
           <span>{displayName}</span>
           <span className="text-white/40">·</span>
-          <span>{formatDate(comment.created_at ?? '')}</span>
+          <span>{formatDate(comment.created_at)}</span>
         </div>
 
         <div className="flex items-center gap-2">

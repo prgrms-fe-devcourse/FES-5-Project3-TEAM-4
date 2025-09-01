@@ -1,5 +1,6 @@
-/** created_dt 표시용 포맷터 */
-export function formatDate(dt: string) {
+export function formatDate(dt: string | null) {
+  if (!dt) return '';
+
   try {
     const d = new Date(dt);
     const y = d.getFullYear();

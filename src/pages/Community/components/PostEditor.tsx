@@ -343,9 +343,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
                       />
                     </div>
                     <div className="px-4 py-3 flex items-center justify-between">
-                      <span className="text-white/80 text-sm">
-                        {formatDate(r.created_at ?? '')}
-                      </span>
+                      <span className="text-white/80 text-sm">{formatDate(r.created_at)}</span>
                       <span className="text-white/50 text-xs">클릭하여 첨부</span>
                     </div>
                   </button>
