@@ -431,7 +431,11 @@ export default function CommunityDetail() {
             value={commentText}
             onChange={(e) => setCommentText(e.currentTarget.value)}
             disabled={!isAuthed}
-            className="w-full resize-none rounded-xl bg-transparent border border-white/20 px-4 py-3 text-sm text-white/90 placeholder:text-white/50 focus-visible:outline-0 focus-visible:ring-2 focus-visible:ring-white/40 disabled:opacity-50"
+            className="
+            scrollbar scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent
+             hover:scrollbar-thumb-white/60
+
+            w-full resize-none rounded-xl bg-transparent border border-white/20 px-4 py-3 text-sm text-white/90 placeholder:text-white/50 focus-visible:outline-0 focus-visible:ring-2 focus-visible:ring-white/40 disabled:opacity-50"
           />
           <div className="absolute right-3 bottom-2 text-xs text-white/60">
             {commentText.length}/500
