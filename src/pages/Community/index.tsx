@@ -13,6 +13,7 @@ import { formatDate } from '@/common/utils/format';
 import supabase from '@/common/api/supabase/supabase';
 // import { showAlert } from '@/common/utils/sweetalert';
 import AuthOnlyButton from '@/common/components/AuthOnlyButton';
+import { useToggleLike } from '@/common/hooks/useToggleLike';
 // import { toggleLike } from '@/common/api/Community/like';
 
 const PAGE_SIZE = 10;
@@ -27,6 +28,7 @@ const sortMap: Record<SortKey, { column: CommunitySortKey; ascending: boolean }>
 export default function Community() {
   const navigate = useNavigate();
 
+  const { toggleLike } = useToggleLike();
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortKey>('new');
   const [q, setQ] = useState('');
@@ -82,6 +84,16 @@ export default function Community() {
     setPage(1);
   };
 
+  const handleClickLike = async (communityId: string) => {
+    const next = await toggleLike(communityId);
+    if (!next) return;
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === communityId ? { ...r, likes: next.count, likedByMe: next.liked } : r
+      )
+    );
+  };
+
   const handleClickList = (id: string) => {
     const row = rows.find((r) => r.id === id);
 
@@ -89,10 +101,9 @@ export default function Community() {
   };
 
   // UI에 필요한 형태로만 매핑해서 ListItem에 넘김
-  // UI에 필요한 형태
   const listForUI: Post[] = rows.map((r) => ({
     id: r.id,
-    date: formatDate(r.created_at),
+    date: formatDate(r.created_at ?? ''),
     title: r.title ?? '',
     likes: r.likes ?? 0,
     liked: !!r.likedByMe,
@@ -125,14 +136,7 @@ export default function Community() {
               key={post.id}
               post={post}
               onClick={(id) => handleClickList(String(id))}
-              onLike={(id, next) => {
-                if (!next) return;
-                setRows((prev) =>
-                  prev.map((r) =>
-                    r.id === id ? { ...r, likes: next.count, likedByMe: next.liked } : r
-                  )
-                );
-              }}
+              onLike={(id) => handleClickLike(String(id))}
             />
           ))}
           {listForUI.length === 0 && (

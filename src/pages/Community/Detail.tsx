@@ -11,9 +11,11 @@ import type { CommentNode } from '@/common/types/comment';
 import { fetchCommentsFlat, insertComment } from '@/common/api/Community/comment';
 import CommentItem from './components/CommentItem';
 import { formatDate } from '@/common/utils/format';
+import { useToggleLike } from '@/common/hooks/useToggleLike';
 
 export default function CommunityDetail() {
   const nav = useNavigate();
+  const { toggleLike } = useToggleLike();
   const [canEdit, setCanEdit] = useState(false);
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
@@ -388,12 +390,14 @@ export default function CommunityDetail() {
         {/* 푸터: 좋아요 / 수정 / 삭제 */}
         <div className="mt-4 flex items-center justify-between text-sm">
           <LikeButton
-            communityId={String(row.id)}
+            liked={!!row.likedByMe}
             count={row.likes ?? 0}
-            liked={row.likedByMe ?? false}
-            onChange={({ count, liked }) => {
-              // 디테일 화면의 상태 동기화
-              setRow((prev) => (prev ? { ...prev, likes: count, likedByMe: liked } : prev));
+            onPress={async () => {
+              const next = await toggleLike(String(row.id));
+              if (!next) return;
+              setRow((prev) =>
+                prev ? { ...prev, likes: next.count, likedByMe: next.liked } : prev
+              );
             }}
           />
 
