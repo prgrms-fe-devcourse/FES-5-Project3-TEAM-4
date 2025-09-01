@@ -13,6 +13,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.4",
     "@react-three/fiber": "^9.3.0",
+    "@rive-app/react-canvas": "^4.23.1",
     "@supabase/supabase-js": "^2.55.0",
     "@tailwindcss/vite": "^4.1.12",
     "@types/react-router": "^5.1.20",

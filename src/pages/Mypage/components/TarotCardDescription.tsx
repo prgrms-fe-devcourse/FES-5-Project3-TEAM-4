@@ -1,9 +1,6 @@
 import type { Tables } from '@/common/api/supabase/database.types';
 import tw from '@/common/utils/tw';
 import { useEffect, useId, useRef, useState } from 'react';
-import gsap from 'gsap';
-
-gsap.registerPlugin(Flip);
 
 interface Props {
   name: string | null;
