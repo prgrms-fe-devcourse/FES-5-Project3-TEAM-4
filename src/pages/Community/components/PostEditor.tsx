@@ -68,7 +68,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
 
         const { data, error } = await supabase
           .from('tarot')
-          .select('id, profile_id, created_at, result, topic')
+          .select('id, profile_id, created_at, result, topic, question')
           .eq('profile_id', user.id)
           .order('created_at', { ascending: false });
         if (error) throw error;
