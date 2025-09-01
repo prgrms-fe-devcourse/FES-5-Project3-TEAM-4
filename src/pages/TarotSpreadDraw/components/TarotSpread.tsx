@@ -1,12 +1,18 @@
 import { useEffect, useMemo } from 'react';
 import { gsap } from 'gsap';
-import Spreading from './Spreading';
+import Spread from './Spread';
 import { useElementSize } from '../hooks/useElementSize';
 import { computeEllipseAxes, getFanTransformsEllipse } from '../utils/ellipse';
-import type { TarotCardModel } from '../../Tarot/types/tarot';
+import type { TarotCardModel } from '../../Tarot/types/CardProps';
 import CardFront from '@/assets/Tarot/tarot_front.svg';
 
-function TarotSpread() {
+type Props = {
+  slotRefs?: readonly React.RefObject<HTMLDivElement | null>[];
+  onSnap?: (slotIdx: number, cardId: number | string) => void;
+  canAccept?: (slotIdx: number) => boolean;
+};
+
+function TarotSpread({ slotRefs, onSnap, canAccept }: Props) {
   const { ref: stageRef, size: stageSize } = useElementSize<HTMLDivElement>();
 
   const deck = useMemo<TarotCardModel[]>(
@@ -19,13 +25,11 @@ function TarotSpread() {
     []
   );
 
-  // 카드 너비
   const cardWidth = useMemo(() => {
     const w = stageSize.width || 1024;
     return Math.round(Math.max(86, Math.min(128, w / 12)));
   }, [stageSize.width]);
 
-  // 스프레드 각도
   const maxThetaDeg = useMemo(() => {
     const w = stageSize.width;
     if (w >= 1280) return 54;
@@ -33,7 +37,6 @@ function TarotSpread() {
     return 58;
   }, [stageSize.width]);
 
-  // 타원 세로 비율
   const verticalRatio = useMemo(() => {
     const w = stageSize.width;
     if (w >= 1280) return 0.36;
@@ -43,13 +46,11 @@ function TarotSpread() {
 
   const sideMarginRatio = 0.12;
 
-  // 타원 축
   const { a, b } = useMemo(
     () => computeEllipseAxes(stageSize.width, maxThetaDeg, sideMarginRatio, verticalRatio),
     [stageSize.width, maxThetaDeg, sideMarginRatio, verticalRatio]
   );
 
-  // 겹침/보강
   const overlapTangentPx = useMemo(() => Math.round(-0.16 * cardWidth), [cardWidth]);
   const bowPx = useMemo(() => Math.round(0.1 * cardWidth), [cardWidth]);
 
@@ -99,7 +100,15 @@ function TarotSpread() {
         style={{ height: stageH }}
         className="relative isolate mx-auto transform-gpu -top-50"
       >
-        <Spreading deck={deck} cardWidth={cardWidth} transforms={transforms} />
+        <Spread
+          deck={deck}
+          cardWidth={cardWidth}
+          transforms={transforms}
+          slotRefs={slotRefs}
+          resizeKey={stageSize.width || 0}
+          onSnap={onSnap}
+          canAccept={canAccept}
+        />
       </div>
     </div>
   );
