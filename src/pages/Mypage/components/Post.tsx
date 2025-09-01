@@ -8,8 +8,9 @@ import { Link } from 'react-router';
 
 function Post() {
   const userInfo = useAuth((state) => state.userInfo);
-  const [listData, setListData] = useState<Tables<'community'>[] | null>(null);
+  // const [listData, setListData] = useState<Tables<'community'>[] | null>(null);
   const [total, setTotal] = useState(0);
+  const [communityListData, setCommunityListData] = useState<Tables<'community'>[] | null>(null);
 
   useEffect(() => {
     const selectCommunity = async () => {
@@ -18,8 +19,9 @@ function Post() {
         'created_at',
         false
       );
-      setListData(listData);
+      // setListData(listData);
       setTotal(total ?? 0);
+      setCommunityListData(listData);
     };
     selectCommunity();
   }, [userInfo.userId]);
@@ -30,9 +32,7 @@ function Post() {
       <div className="flex flex-col ">
         {communityListData && communityListData?.length > 0 && (
           <>
-            <span className="text-main-white text-end mb-4">
-              작성한 글 : {communityListData?.length ?? 0}개
-            </span>
+            <span className="text-main-white text-end mb-4">작성한 글 : {total}개</span>
             <ul className="h-[65vh] border-t border-b border-main-white pt-4.5 overflow-y-auto scrollbar-thin scrollbar-thumb-main-white scrollbar-track-transparent">
               {communityListData.map((communityData) => (
                 <BoardItem
