@@ -13,6 +13,7 @@ import { formatDate } from '@/common/utils/format';
 import supabase from '@/common/api/supabase/supabase';
 import { showAlert } from '@/common/utils/sweetalert';
 import AuthOnlyButton from '@/common/components/AuthOnlyButton';
+import { toggleLike } from '@/common/api/Community/like';
 
 const PAGE_SIZE = 10;
 
@@ -87,31 +88,17 @@ export default function Community() {
     navigate(`/community/${id}`, { state: { row } });
   };
 
-  // api 로 빼기
   const handleClickLike = async (communityId: string) => {
     // 중복 클릭 방지
     if (likingId === communityId) return;
     setLikingId(communityId);
 
-    const {
-      data: { user },
-      error: authErr,
-    } = await supabase.auth.getUser();
-    if (authErr || !user) {
-      setLikingId(null);
-      return showAlert('error', '로그인 에러', '로그인이 필요합니다');
-    }
-
     try {
-      const { data, error } = await supabase.rpc('toggle_like', { p_community_id: communityId });
-      if (error) throw error;
-
-      const payload = data?.[0];
-      const newCount = payload?.likes_count ?? 0;
-      const liked = payload?.liked ?? false;
-
+      const next = await toggleLike(communityId);
       setRows((prev) =>
-        prev.map((r) => (r.id === communityId ? { ...r, likes: newCount, likedByMe: liked } : r))
+        prev.map((r) =>
+          r.id === communityId ? { ...r, likes: next.count, likedByMe: next.liked } : r
+        )
       );
     } catch (e: unknown) {
       showAlert(

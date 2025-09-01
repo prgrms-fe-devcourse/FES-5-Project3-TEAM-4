@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import BoardItem from './BoardItem';
 import { useAuth } from '@/common/store/authStore';
 import type { Tables } from '@/common/api/supabase/database.types';
-import { selectLikeListWithCommunity } from '@/common/api/Likes/likes';
+import { selectLikeListWithCommunity } from '@/common/api/Community/like';
 
 type LikeListProps = Tables<'likes'> & { community: Tables<'community'> };
 

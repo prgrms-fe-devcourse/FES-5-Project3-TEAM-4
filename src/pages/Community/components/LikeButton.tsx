@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import supabase from '@/common/api/supabase/supabase';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { showAlert } from '@/common/utils/sweetalert';
+import { toggleLike } from '@/common/api/Community/like';
 
 type Props = {
   communityId: string;
@@ -20,43 +20,21 @@ export default function LikeButton({
   className = '',
   onChange,
 }: Props) {
-  // 낙관적 ui
-  // 로컬 상태 (부모가 안 내려줄 때 대비)
+  // 부모가 onChange를 주지 않으면 내부 로컬 상태로 낙관적 UI 처리
   const [local, setLocal] = useState({ count, liked });
-
   const cur = { count: onChange ? count : local.count, liked: onChange ? liked : local.liked };
-
-  const setNext = (next: { count: number; liked: boolean }) => {
-    if (onChange) onChange(next);
-    else setLocal(next);
-  };
+  const setNext = (next: { count: number; liked: boolean }) =>
+    onChange ? onChange(next) : setLocal(next);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    const {
-      data: { user },
-      error: authErr,
-    } = await supabase.auth.getUser();
-    if (authErr || !user) {
-      showAlert('error', '로그인 에러', '로그인이 필요합니다.');
-      return;
-    }
-
     try {
-      // 서버에서 원자적으로 토글
-      const { data, error } = await supabase.rpc('toggle_like', {
-        p_community_id: communityId,
-      });
-      if (error) throw error;
-
-      const payload = data?.[0];
-      setNext({
-        liked: Boolean(payload?.liked),
-        count: Number(payload?.likes_count ?? 0),
-      });
+      const next = await toggleLike(communityId);
+      setNext(next);
     } catch (err) {
-      alert(err instanceof Error ? err.message : '좋아요 처리 중 오류가 발생했어요.');
+      const msg = err instanceof Error ? err.message : '좋아요 처리 중 오류가 발생했어요.';
+      showAlert('error', '좋아요 에러', msg);
     }
   };
 
