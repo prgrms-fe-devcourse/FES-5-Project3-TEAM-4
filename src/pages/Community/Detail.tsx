@@ -152,9 +152,32 @@ export default function CommunityDetail() {
     (async () => {
       try {
         setLoading(true);
-        const data = await selectCommunityById(id);
-        if (!data) setError('게시글을 찾을 수 없습니다.');
-        setRow(data);
+        // const data = await selectCommunityById(id);
+        // if (!data) setError('게시글을 찾을 수 없습니다.');
+        // setRow(data);
+        const base = await selectCommunityById(id);
+        if (!base) {
+          setError('게시글을 찾을 수 없습니다.');
+          return;
+        }
+
+        // 로그인 유저가 이 글을 좋아요했는지 확인
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        let likedByMe = row?.likedByMe ?? false; // state에 있으면 보존
+
+        if (user) {
+          const { data: likeRow } = await supabase
+            .from('likes')
+            .select('id')
+            .eq('profile_id', user.id)
+            .eq('community_id', id)
+            .maybeSingle(); // 없으면 null
+          likedByMe = !!likeRow;
+        }
+
+        setRow(() => ({ ...base, likedByMe }));
       } catch {
         setError('게시글을 불러오지 못했습니다.');
       } finally {
@@ -370,6 +393,10 @@ export default function CommunityDetail() {
             communityId={String(row.id)}
             count={row.likes ?? 0}
             liked={row.likedByMe ?? false}
+            onChange={({ count, liked }) => {
+              // 디테일 화면의 상태 동기화
+              setRow((prev) => (prev ? { ...prev, likes: count, likedByMe: liked } : prev));
+            }}
           />
 
           <div className="flex items-center gap-3 text-white/70">
