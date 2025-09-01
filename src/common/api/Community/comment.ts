@@ -116,9 +116,6 @@ export async function updateComment(id: string, contents: string) {
   return true;
 }
 
-/** 댓글 삭제(소프트 삭제) — is_deleted = true (소유자만) */
-// comment.ts
-
 /** 댓글 삭제: 자식 유무/대댓글 여부에 따라 soft/hard delete */
 export async function deleteComment(params: { comment_id: string }): Promise<boolean> {
   try {

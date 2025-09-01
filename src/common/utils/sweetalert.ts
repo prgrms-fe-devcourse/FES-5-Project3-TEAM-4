@@ -14,15 +14,15 @@ export const swal = Swal.mixin({
     actions: '!gap-2',
 
     confirmButton:
-      'inline-flex items-center justify-center h-10 px-5 rounded-full font-semibold ' +
+      'inline-flex items-center cursor-pointer justify-center h-10 px-5 rounded-full font-semibold ' +
       '!text-white !border !border-transparent ' +
       'bg-gradient-to-r from-[#5B2E91] to-[#973D5E] ' +
       'hover:brightness-105',
     cancelButton:
       'inline-flex items-center justify-center h-10 px-5 rounded-full font-semibold ' +
-      '!text-white/90 !border !border-white/20 !bg-white/10 hover:!bg-white/15',
+      '!text-white/90 !border cursor-pointer !border-white/20 !bg-white/10 hover:!bg-white/15',
     denyButton:
-      'inline-flex items-center justify-center h-10 px-5 rounded-full font-semibold ' +
+      'inline-flex items-center cursor-pointer justify-center h-10 px-5 rounded-full font-semibold ' +
       '!text-white !border !border-transparent ' +
       'bg-gradient-to-b from-[#ff496e] to-[#d12d52] hover:brightness-105',
     validationMessage: '!text-pink-200 !text-xs !mt-1',

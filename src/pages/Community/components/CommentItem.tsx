@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/common/components/Button';
-import { showAlert } from '@/common/utils/sweetalert';
+import { showAlert, showConfirmAlert } from '@/common/utils/sweetalert';
 import type { Tables } from '@/common/api/supabase/database.types';
 import { insertComment, updateComment, deleteComment } from '@/common/api/Community/comment';
 import { formatDate } from '@/common/utils/format';
@@ -79,8 +79,11 @@ export default function CommentItem({
 
   const remove = async () => {
     if (!isOwner) return;
-    const ok = await deleteComment({ comment_id: comment.id });
-    if (ok) await onDeleted();
+
+    showConfirmAlert('댓글을 삭제할까요?', '삭제 후엔 되돌릴 수 없습니다.', async () => {
+      const ok = await deleteComment({ comment_id: comment.id });
+      if (ok) await onDeleted();
+    });
   };
 
   return (
