@@ -219,7 +219,6 @@ export type Database = {
           id: string;
           profile_id: string;
           tarot_id: string;
-          title: string | null;
         };
         Insert: {
           contents?: string | null;
@@ -227,7 +226,6 @@ export type Database = {
           id?: string;
           profile_id: string;
           tarot_id: string;
-          title?: string | null;
         };
         Update: {
           contents?: string | null;
@@ -235,7 +233,6 @@ export type Database = {
           id?: string;
           profile_id?: string;
           tarot_id?: string;
-          title?: string | null;
         };
         Relationships: [
           {
@@ -256,31 +253,42 @@ export type Database = {
       };
       tarot: {
         Row: {
-          create_at: string | null;
+          created_at: string | null;
           id: string;
           profile_id: string;
+          question: string | null;
           result: string | null;
           topic: string | null;
         };
         Insert: {
-          create_at?: string | null;
+          created_at?: string | null;
           id?: string;
           profile_id: string;
+          question?: string | null;
           result?: string | null;
           topic?: string | null;
         };
         Update: {
-          create_at?: string | null;
+          created_at?: string | null;
           id?: string;
           profile_id?: string;
+          question?: string | null;
           result?: string | null;
           topic?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'tarot_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       tarot_info: {
         Row: {
-          create_at: string | null;
+          created_at: string | null;
           id: string;
           name: string;
           parent_id: string | null;
@@ -289,7 +297,7 @@ export type Database = {
           tarot_id: string;
         };
         Insert: {
-          create_at?: string | null;
+          created_at?: string | null;
           id?: string;
           name: string;
           parent_id?: string | null;
@@ -298,7 +306,7 @@ export type Database = {
           tarot_id: string;
         };
         Update: {
-          create_at?: string | null;
+          created_at?: string | null;
           id?: string;
           name?: string;
           parent_id?: string | null;
