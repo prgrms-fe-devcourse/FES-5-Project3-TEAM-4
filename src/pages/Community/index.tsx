@@ -11,10 +11,8 @@ import { selectCommunityList } from '@/common/api/Community/community';
 import type { CommunityRowUI, CommunitySortKey } from '@/common/types/community';
 import { formatDate } from '@/common/utils/format';
 import supabase from '@/common/api/supabase/supabase';
-// import { showAlert } from '@/common/utils/sweetalert';
 import AuthOnlyButton from '@/common/components/AuthOnlyButton';
 import { useToggleLike } from '@/common/hooks/useToggleLike';
-// import { toggleLike } from '@/common/api/Community/like';
 
 const PAGE_SIZE = 10;
 
@@ -35,7 +33,6 @@ export default function Community() {
   const [rows, setRows] = useState<CommunityRowUI[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  // const [likingId, setLikingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchList = async () => {
