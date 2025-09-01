@@ -11,9 +11,9 @@ import { selectCommunityList } from '@/common/api/Community/community';
 import type { CommunityRowUI, CommunitySortKey } from '@/common/types/community';
 import { formatDate } from '@/common/utils/format';
 import supabase from '@/common/api/supabase/supabase';
-import { showAlert } from '@/common/utils/sweetalert';
+// import { showAlert } from '@/common/utils/sweetalert';
 import AuthOnlyButton from '@/common/components/AuthOnlyButton';
-import { toggleLike } from '@/common/api/Community/like';
+// import { toggleLike } from '@/common/api/Community/like';
 
 const PAGE_SIZE = 10;
 
@@ -33,7 +33,7 @@ export default function Community() {
   const [rows, setRows] = useState<CommunityRowUI[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [likingId, setLikingId] = useState<string | null>(null);
+  // const [likingId, setLikingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchList = async () => {
@@ -88,29 +88,6 @@ export default function Community() {
     navigate(`/community/${id}`, { state: { row } });
   };
 
-  const handleClickLike = async (communityId: string) => {
-    // 중복 클릭 방지
-    if (likingId === communityId) return;
-    setLikingId(communityId);
-
-    try {
-      const next = await toggleLike(communityId);
-      setRows((prev) =>
-        prev.map((r) =>
-          r.id === communityId ? { ...r, likes: next.count, likedByMe: next.liked } : r
-        )
-      );
-    } catch (e: unknown) {
-      showAlert(
-        'error',
-        '좋아요 에러',
-        e instanceof Error ? e.message : '좋아요 처리 중 오류가 발생했어요.'
-      );
-    } finally {
-      setLikingId(null);
-    }
-  };
-
   // UI에 필요한 형태로만 매핑해서 ListItem에 넘김
   // UI에 필요한 형태
   const listForUI: Post[] = rows.map((r) => ({
@@ -148,7 +125,14 @@ export default function Community() {
               key={post.id}
               post={post}
               onClick={(id) => handleClickList(String(id))}
-              onLike={(id) => handleClickLike(String(id))}
+              onLike={(id, next) => {
+                if (!next) return;
+                setRows((prev) =>
+                  prev.map((r) =>
+                    r.id === id ? { ...r, likes: next.count, likedByMe: next.liked } : r
+                  )
+                );
+              }}
             />
           ))}
           {listForUI.length === 0 && (
