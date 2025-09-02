@@ -8,15 +8,23 @@ import { Link } from 'react-router';
 
 function Post() {
   const userInfo = useAuth((state) => state.userInfo);
+  // const [listData, setListData] = useState<Tables<'community'>[] | null>(null);
+  const [total, setTotal] = useState(0);
   const [communityListData, setCommunityListData] = useState<Tables<'community'>[] | null>(null);
 
   useEffect(() => {
     const selectCommunity = async () => {
-      const communitydata = await selectCommunityListByUserId(userInfo.userId, 'created_at', false);
-      setCommunityListData(communitydata);
+      const { items: listData, total } = await selectCommunityListByUserId(
+        userInfo.userId,
+        'created_at',
+        false
+      );
+      // setListData(listData);
+      setTotal(total ?? 0);
+      setCommunityListData(listData);
     };
     selectCommunity();
-  }, []);
+  }, [userInfo.userId]);
   return (
     <section className=" w-[750px] h-[85vh] flex flex-col gap-5 pt-10">
       <h1 className="text-main-white pt-14 text-2xl font-semibold">Post</h1>
@@ -24,9 +32,7 @@ function Post() {
       <div className="flex flex-col ">
         {communityListData && communityListData?.length > 0 && (
           <>
-            <span className="text-main-white text-end mb-4">
-              작성한 글 : {communityListData?.length ?? 0}개
-            </span>
+            <span className="text-main-white text-end mb-4">작성한 글 : {total}개</span>
             <ul className="h-[65vh] border-t border-b border-main-white pt-4.5 overflow-y-auto scrollbar-thin scrollbar-thumb-main-white scrollbar-track-transparent">
               {communityListData.map((communityData) => (
                 <BoardItem
