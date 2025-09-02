@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import TopicButton from './components/TopicButton';
 import TopicPrompt from './components/TopicPrompt';
 import { TOPIC_LABEL_LIST, type TopicLabel } from '@/common/types/TarotTopics';
@@ -7,7 +8,7 @@ import CrystalSphere from '@/assets/Tarot/crystal_sphere.png';
 import QuestionExamples from './components/QuestionExamples';
 
 type Props = {
-  onSubmitQuestion: (value: string, topic: TopicLabel | null) => void;
+  onSubmitQuestion?: (value: string, topic: TopicLabel | null) => void; // ← 옵셔널
   presetQuestion?: string;
   selectedTopicInitial?: TopicLabel | null;
 };
@@ -17,6 +18,7 @@ export default function TarotQuestion({
   presetQuestion = '',
   selectedTopicInitial = null,
 }: Props) {
+  const navigate = useNavigate();
   const [selectedTopic, setSelectedTopic] = useState<TopicLabel | null>(selectedTopicInitial);
   const [pickedQuestion, setPickedQuestion] = useState<string>(presetQuestion);
 
@@ -62,18 +64,17 @@ export default function TarotQuestion({
         </div>
       </section>
 
-      <section
-        className="
-          relative z-30 w-full mx-auto
-          max-w-[min(92vw,560px)]
-          md:max-w-[min(92vw,640px)]
-          lg:max-w-[min(92vw,720px)]
-        "
-      >
+      <section className="relative z-30 w-full mx-auto max-w-[min(92vw,720px)]">
         <TopicPrompt
           selectedTopic={selectedTopic}
           presetValue={pickedQuestion}
-          onSubmit={(val, topic) => onSubmitQuestion(val, topic)}
+          onSubmit={(val, topic) => {
+            if (onSubmitQuestion) {
+              onSubmitQuestion(val, topic);
+            } else {
+              navigate('/tarot/shuffle', { state: { question: val, topic } }); // ← fallback
+            }
+          }}
         />
       </section>
 
