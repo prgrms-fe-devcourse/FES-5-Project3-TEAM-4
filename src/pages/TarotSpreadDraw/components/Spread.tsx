@@ -64,8 +64,24 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       const currentWidth = (root as HTMLElement).getBoundingClientRect().width;
       const nextScale = currentScale * (desired / currentWidth);
 
-      gsap.to(root, { scale: nextScale, duration: dur / 1000, ease: 'power3.out' });
       ref.moveTo(tx + (sX - cX), ty + (sY - cY), dur);
+      const tl = gsap.timeline({
+        onComplete: () => {
+          const renderedWidth = (root as HTMLElement).getBoundingClientRect().width;
+
+          (root as HTMLElement).style.width = `${Math.round(renderedWidth)}px`;
+
+          gsap.set(root, { scale: 1, force3D: false, z: 0.01 });
+
+          gsap.to(root, {
+            width: desired,
+            duration: Math.max(0.18, (dur / 1000) * 0.4),
+            ease: 'power2.out',
+          });
+        },
+      });
+
+      tl.to(root, { scale: nextScale, duration: dur / 1000, ease: 'power3.out' });
     },
     [slotRefs]
   );
