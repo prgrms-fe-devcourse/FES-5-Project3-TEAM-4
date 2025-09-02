@@ -1,23 +1,11 @@
-import { useEffect, useState } from 'react';
 import BoardItem from './BoardItem';
-import { useAuth } from '@/common/store/authStore';
 import type { Tables } from '@/common/api/supabase/database.types';
-import { selectLikeListWithCommunity } from '@/common/api/Likes/likes';
-import { Link } from 'react-router';
+import { Link, useLoaderData } from 'react-router';
 
 type LikeListProps = Tables<'likes'> & { community: Tables<'community'> };
 
 function Likes() {
-  const userInfo = useAuth((state) => state.userInfo);
-  const [likesListData, setLikesListData] = useState<LikeListProps[] | null>(null);
-
-  useEffect(() => {
-    const selectCommunity = async () => {
-      const likesData = await selectLikeListWithCommunity(userInfo.userId);
-      setLikesListData(likesData);
-    };
-    selectCommunity();
-  }, []);
+  const likesListData = useLoaderData() as LikeListProps[];
   return (
     <section className=" w-[750px] h-[85vh] flex flex-col gap-5 pt-10">
       <h1 className="text-main-white pt-14 text-2xl font-semibold">Likes</h1>

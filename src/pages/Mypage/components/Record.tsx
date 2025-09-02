@@ -1,32 +1,21 @@
 import NightStarBackGround from '@/pages/Home/components/NightStarBackGround';
 import RecordItem from './RecordItem';
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/common/store/authStore';
-import { selectTarotRecordListByUserId } from '@/common/api/Tarot/tarot';
+
 import type { Tables } from '@/common/api/supabase/database.types';
-import { Link } from 'react-router';
+import { Link, useLoaderData } from 'react-router';
 
 type TarotListProps = Tables<'tarot'> & { record: Tables<'record'>[] };
 
 function Record() {
-  const userInfo = useAuth((state) => state.userInfo);
-  const [tarotRecordList, setTarotRecordList] = useState<TarotListProps[] | null>(null);
-  useEffect(() => {
-    const getListData = async () => {
-      const listData = await selectTarotRecordListByUserId(userInfo.userId);
-      setTarotRecordList(listData);
-    };
-    getListData();
-  }, []);
+  const tarotRecordList = useLoaderData() as TarotListProps[];
 
   return (
-    <section className=" w-[750px] h-[85vh] flex flex-col gap-5 pt-10">
-      <h1 className="text-main-white pt-14 text-2xl font-semibold">Record</h1>
-      <div className="w-[750px] h-[90%] relative">
-        <div className="w-[100%] h-[95%] rounded-[20px] p-4 absolute z-30">
+    <section className="md:w-[700px] xl:w-[750px] h-[85vh] flex flex-col gap-5 xl:pt-10 md:pt-5 md:mb-10">
+      <h1 className="text-main-white xl:pt-14 md:pt-4 text-2xl font-semibold">Record</h1>
+      <div className="w-full h-[90%] relative">
+        <div className="w-full h-[95%] rounded-[20px] p-4 absolute z-30">
           <div className="top-0 flex flex-col h-[100%] items-center pt-4  absolute">
             <img src="/icons/boy2.svg" alt="달에서 낚시하는 소년 이미지" loading="lazy" />
-
             <div className="w-px ml-[98px] flex-1 bg-white/25" />
             <img
               className="ml-[98px]"

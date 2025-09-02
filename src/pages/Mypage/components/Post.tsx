@@ -1,22 +1,9 @@
-import { useEffect, useState } from 'react';
 import BoardItem from './BoardItem';
-
-import { useAuth } from '@/common/store/authStore';
-import { selectCommunityListByUserId } from '@/common/api/Community/community';
 import type { Tables } from '@/common/api/supabase/database.types';
-import { Link } from 'react-router';
+import { Link, useLoaderData } from 'react-router';
 
 function Post() {
-  const userInfo = useAuth((state) => state.userInfo);
-  const [communityListData, setCommunityListData] = useState<Tables<'community'>[] | null>(null);
-
-  useEffect(() => {
-    const selectCommunity = async () => {
-      const communitydata = await selectCommunityListByUserId(userInfo.userId, 'created_at', false);
-      setCommunityListData(communitydata);
-    };
-    selectCommunity();
-  }, []);
+  const communityListData = useLoaderData() as Tables<'community'>[];
   return (
     <section className=" w-[750px] h-[85vh] flex flex-col gap-5 pt-10">
       <h1 className="text-main-white pt-14 text-2xl font-semibold">Post</h1>
