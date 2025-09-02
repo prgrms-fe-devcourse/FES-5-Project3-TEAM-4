@@ -35,7 +35,8 @@ export type TarotCardProps = {
 };
 
 export type TarotCardModel = {
-  id: number;
+  id: string;
   name: string;
   frontSrc: string;
+  reversed: boolean;
 };

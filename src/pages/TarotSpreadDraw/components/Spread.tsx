@@ -137,6 +137,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
         cardIndexInDeck: cardIdx ?? null,
         cardId: card?.id ?? null,
         cardName: card?.name ?? null,
+        reversed: card?.reversed ?? false,
       };
     });
     console.log('[Tarot] All slots filled. Summary:', summary);
@@ -256,6 +257,8 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                 name={c.name}
                 frontSrc={c.frontSrc}
                 width={cardWidth}
+                reversed={c.reversed}
+                flipDir={c.reversed ? 1 : -1}
                 onDragStart={(_, payload) => {
                   const wrap = wrapsRef.current[i];
                   if (wrap) {
