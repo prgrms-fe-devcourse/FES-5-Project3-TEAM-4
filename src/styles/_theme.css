@@ -1,4 +1,7 @@
 @theme {
   --color-main-black: #121212;
   --color-main-white: #f5f5f5;
+  --font-sans:
+    'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Apple SD Gothic Neo',
+    'Malgun Gothic', 'Nanum Gothic', 'Helvetica Neue', Arial, 'Noto Color Emoji', sans-serif;
 }

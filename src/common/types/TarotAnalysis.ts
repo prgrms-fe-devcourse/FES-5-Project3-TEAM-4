@@ -7,11 +7,13 @@ export type TarotAnalysis = {
 
 export type Cards = {
   interpretation: string;
-  keyword: string[];
-  naem: string;
+  keywordsInterpretation: string;
+  emotional: string;
+  keywords: string[];
+  name: string;
   position: string;
   slot: string;
-  subcards?: SubCards[];
+  subcards?: SubCards | null;
 };
 
 export type SubCards = {
@@ -23,4 +25,10 @@ export type SubCards = {
 export type Overview = {
   summary: string;
   theme: string;
+};
+export type CardInfoProps = {
+  cardName: string;
+  direction: 'upright' | 'reversed';
+  subCard?: string | null;
+  subCardDirection?: 'upright' | 'reversed' | null;
 };

@@ -20,7 +20,7 @@ function Record() {
   }, []);
 
   return (
-    <section className=" w-[750px] h-[85vh] flex flex-col gap-5 pt-10">
+    <section className="w-[750px] h-[85vh] flex flex-col gap-5 pt-10">
       <h1 className="text-main-white pt-14 text-2xl font-semibold">Record</h1>
       <div className="w-[750px] h-[90%] relative">
         <div className="w-[100%] h-[95%] rounded-[20px] p-4 absolute z-30">
