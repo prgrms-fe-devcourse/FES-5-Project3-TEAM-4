@@ -26,6 +26,7 @@ const Management = lazy(() => import('@/pages/Mypage/components/Management'));
 const Post = lazy(() => import('@/pages/Mypage/components/Post'));
 const Likes = lazy(() => import('@/pages/Mypage/components/Likes'));
 const Record = lazy(() => import('@/pages/Mypage/components/Record'));
+const KakaoShare = lazy(() => import('@/pages/KakaoShare/KakaoShare'));
 
 export const routes = createBrowserRouter([
   {
@@ -162,6 +163,11 @@ export const routes = createBrowserRouter([
             handle: { label: 'OAuth', showInNav: false },
           },
         ],
+      },
+      {
+        path: 'share/:id',
+        Component: KakaoShare,
+        handle: { label: 'share', showInNav: false },
       },
     ],
   },
