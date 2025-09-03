@@ -12,7 +12,7 @@ export function useTarotDeck() {
     setLoading(true);
     setError(null);
 
-    const rows = await selectCardsInfo(); // 내부에서 showAlert 처리
+    const rows = await selectCardsInfo();
     if (!rows) {
       setError('카드 정보를 불러오지 못했습니다.');
       setLoading(false);
@@ -25,10 +25,10 @@ export function useTarotDeck() {
         id: r.name,
         name: r.name!,
         frontSrc: normalizeImageUrl(r.image_url!),
-        reversed: Math.random() < 0.5, // ⬅️ 50% 확률
+        reversed: Math.random() < 0.5,
       }));
 
-    setDeck(shuffle(mapped)); // 매 로드마다 랜덤
+    setDeck(shuffle(mapped));
     setLoading(false);
   }, []);
 
@@ -36,10 +36,5 @@ export function useTarotDeck() {
     load();
   }, [load]);
 
-  // // 선택 사항: 다시 섞기/다시 로드
-  // const reshuffle = useCallback(() => setDeck((d) => shuffle(d)), []);
-  // const reload = load;
-
-  // return { deck, loading, error, reshuffle, reload };
   return { deck, loading, error };
 }

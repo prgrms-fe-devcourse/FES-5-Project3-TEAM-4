@@ -28,7 +28,6 @@ export type TarotCardProps = {
   hoverBackScale?: number;
   onFlip?: (id: number | string, faceUp: boolean) => void;
   onClick?: (id: number | string) => void;
-  onOpenModal?: (id: number | string) => void;
   onDragStart?: (id: number | string, payload?: DragPayload) => void;
   onDragEnd?: (id: number | string, payload: DragPayload) => void;
   className?: string;

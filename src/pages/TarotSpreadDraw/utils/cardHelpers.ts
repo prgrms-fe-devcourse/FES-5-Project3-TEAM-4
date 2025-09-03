@@ -2,10 +2,9 @@ import supabase from '@/common/api/supabase/supabase';
 
 export function normalizeImageUrl(u: string | null | undefined): string {
   if (!u) return '';
-  // 절대 URL이면 그대로
+
   if (/^https?:\/\//i.test(u)) return u;
 
-  // "bucket/path/to/file.png" 형태면 공개 URL 생성
   const [bucket, ...rest] = u.split('/');
   const path = rest.join('/');
   if (!bucket || !path) return u;

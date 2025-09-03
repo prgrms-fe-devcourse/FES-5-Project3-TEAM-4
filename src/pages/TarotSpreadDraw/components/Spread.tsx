@@ -1,7 +1,10 @@
-import { useRef, useCallback, useEffect, useState, type RefObject } from 'react';
+import { useRef, useCallback, useEffect, useState, useMemo, type RefObject } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import TarotCard from '@/pages/Tarot/components/TarotCard';
 import type { TarotCardModel, TarotCardHandle } from '../../Tarot/types/CardProps';
+import { tarotStore, type Slot, type CardPick } from '@/pages/Tarot/store/tarotStore';
+import { isAmbiguous } from '@/pages/TarotResult/utils/ambiguous';
 
 type Props = {
   deck: TarotCardModel[];
@@ -19,7 +22,31 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
   const preWrapAngleRef = useRef<number[]>([]);
   const [filledBySlot, setFilledBySlot] = useState<Array<number | null>>([]);
   const [slotOfCard, setSlotOfCard] = useState<Array<number | null>>([]);
-  const [flippedAll, setFlippedAll] = useState(false);
+  const [flippedMain, setFlippedMain] = useState(false);
+
+  const slots = tarotStore((s) => s.slots);
+  const setCard = tarotStore((s) => s.setCard);
+  const setStage = tarotStore((s) => s.setStage);
+  const clarifyMode = tarotStore((s) => s.clarifyMode);
+  const spreadSnapshot = tarotStore((s) => s.spreadSnapshot);
+  const saveSpreadSnapshot = tarotStore((s) => s.saveSpreadSnapshot);
+
+  const savedMainOnceRef = useRef(false);
+  const expectFlipIdsRef = useRef<Set<string | number>>(new Set());
+  const navigatingRef = useRef(false);
+  const navigateTimerRef = useRef<number | null>(null);
+  const restoredOnceRef = useRef(false);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    return () => {
+      if (navigateTimerRef.current) {
+        clearTimeout(navigateTimerRef.current);
+        navigateTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const setWrapRef = useCallback(
     (i: number) => (el: HTMLDivElement | null) => {
@@ -65,14 +92,12 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       const nextScale = currentScale * (desired / currentWidth);
 
       ref.moveTo(tx + (sX - cX), ty + (sY - cY), dur);
+
       const tl = gsap.timeline({
         onComplete: () => {
           const renderedWidth = (root as HTMLElement).getBoundingClientRect().width;
-
           (root as HTMLElement).style.width = `${Math.round(renderedWidth)}px`;
-
           gsap.set(root, { scale: 1, force3D: false, z: 0.01 });
-
           gsap.to(root, {
             width: desired,
             duration: Math.max(0.18, (dur / 1000) * 0.4),
@@ -124,32 +149,179 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
     [realignOne]
   );
 
+  const orderedDeck = useMemo(() => {
+    const order = spreadSnapshot?.deckOrder;
+    if (!order || !order.length) return deck;
+    const m = new Map(order.map((id, i) => [String(id), i]));
+    return [...deck].sort((a, b) => {
+      const ai = m.get(String(a.id));
+      const bi = m.get(String(b.id));
+      if (ai == null && bi == null) return 0;
+      if (ai == null) return 1;
+      if (bi == null) return -1;
+      return ai - bi;
+    });
+  }, [deck, spreadSnapshot?.deckOrder]);
+
   useEffect(() => {
     const n = slotRefs?.length ?? 0;
-    if (!n || filledBySlot.length !== n || flippedAll) return;
-    const allFilled = filledBySlot.every((v) => v !== null);
-    if (!allFilled) return;
+    if (!n || filledBySlot.length !== n || flippedMain) return;
 
-    const summary = filledBySlot.map((cardIdx, slotIdx) => {
-      const card = cardIdx != null ? deck[cardIdx] : null;
-      return {
-        slotIndex: slotIdx,
-        cardIndexInDeck: cardIdx ?? null,
-        cardId: card?.id ?? null,
-        cardName: card?.name ?? null,
-        reversed: card?.reversed ?? false,
-      };
-    });
-    console.log('[Tarot] All slots filled. Summary:', summary);
+    const mainIdxList = Array.from({ length: n }, (_, i) => i).filter((i) => i % 2 === 0);
+    const allMainFilled = mainIdxList.every((mi) => filledBySlot[mi] !== null);
+    if (!allMainFilled) return;
 
-    filledBySlot.forEach((cardIdx, i) => {
+    if (!savedMainOnceRef.current) {
+      const idxToSlot = (mi: number): Slot | null =>
+        mi === 0 ? 'past' : mi === 2 ? 'present' : mi === 4 ? 'future' : null;
+
+      mainIdxList.forEach((mi) => {
+        const deckIdx = filledBySlot[mi];
+        if (deckIdx == null) return;
+        const card = orderedDeck[deckIdx];
+        const slot = idxToSlot(mi);
+        if (!slot) return;
+        setCard(slot, 'main', {
+          id: card.id,
+          name: card.name,
+          frontSrc: card.frontSrc,
+          reversed: card.reversed,
+        });
+      });
+
+      saveSpreadSnapshot({ deckOrder: orderedDeck.map((c) => c.id) });
+      savedMainOnceRef.current = true;
+    }
+
+    expectFlipIdsRef.current = new Set(
+      mainIdxList
+        .map((mi) => filledBySlot[mi])
+        .filter((v) => v != null)
+        .map((deckIdx) => orderedDeck[deckIdx!].id)
+    );
+    navigatingRef.current = true;
+
+    mainIdxList.forEach((mi, order) => {
+      const cardIdx = filledBySlot[mi];
       const ref = cardIdx != null ? cardRefs.current[cardIdx] : null;
       setTimeout(() => {
         ref?.flip(true);
-      }, i * 150);
+      }, order * 150);
     });
-    setFlippedAll(true);
-  }, [filledBySlot, slotRefs?.length, flippedAll, deck]);
+
+    setFlippedMain(true);
+  }, [filledBySlot, slotRefs?.length, flippedMain, orderedDeck, setCard, saveSpreadSnapshot]);
+
+  // 메인 카드 완료
+  useEffect(() => {
+    if (!clarifyMode) return;
+    if (restoredOnceRef.current) return;
+    const n = slotRefs?.length ?? 0;
+    if (!n) return;
+    if (!orderedDeck.length) return;
+
+    const mainIdxList = Array.from({ length: n }, (_, i) => i).filter((i) => i % 2 === 0);
+    const slotKeyByMi = (mi: number): Slot | null =>
+      mi === 0 ? 'past' : mi === 2 ? 'present' : mi === 4 ? 'future' : null;
+
+    const idxById = new Map<string | number, number>();
+    orderedDeck.forEach((c, i) => idxById.set(c.id, i));
+
+    mainIdxList.forEach((mi) => {
+      const key = slotKeyByMi(mi);
+      if (!key) return;
+
+      const packForKey = slots[key];
+      const pick: CardPick | null = packForKey?.main ?? null;
+      if (!pick) return;
+
+      const deckIdx = idxById.get(pick.id);
+      if (deckIdx == null) return;
+
+      setFilledBySlot((prev) => {
+        const base = prev.length === n ? [...prev] : Array(n).fill(null);
+        base[mi] = deckIdx;
+        return base;
+      });
+      setSlotOfCard((prev) => {
+        const len = Math.max(prev.length, orderedDeck.length);
+        const next = Array.from({ length: len }, (_, i) => prev[i] ?? null);
+        next[deckIdx] = mi;
+        return next;
+      });
+
+      requestAnimationFrame(() => {
+        realignOne(deckIdx, mi, 0);
+        const ref = cardRefs.current[deckIdx];
+        ref?.lock();
+        ref?.flip(true);
+        const root = ref?.rootEl as HTMLElement | null;
+        if (root) root.dataset.fitr = '0.8';
+      });
+    });
+
+    restoredOnceRef.current = true;
+  }, [clarifyMode, orderedDeck, slotRefs, slots, realignOne]);
+
+  // 서브 카드 완료
+  useEffect(() => {
+    if (!clarifyMode) return;
+    const n = slotRefs?.length ?? 0;
+    if (!n) return;
+    if (!orderedDeck.length) return;
+
+    const slotKeyByPair = (pair: number): Slot | null =>
+      pair === 0 ? 'past' : pair === 1 ? 'present' : pair === 2 ? 'future' : null;
+
+    const subIdxList: number[] = [];
+    for (let pair = 0; pair < n / 2; pair++) {
+      const key = slotKeyByPair(pair);
+      if (!key) continue;
+      const mainPick = slots[key].main;
+      const ambiguous = Boolean(mainPick && isAmbiguous(mainPick.name ?? String(mainPick.id)));
+      if (!ambiguous) continue;
+      const subFlatIdx = pair * 2 + 1;
+      subIdxList.push(subFlatIdx);
+    }
+
+    if (subIdxList.length === 0) return;
+
+    const allSubsFilled = subIdxList.every((si) => filledBySlot[si] != null);
+    if (!allSubsFilled) return;
+
+    if (navigatingRef.current) return;
+
+    const flipIdSet = new Set<string | number>();
+    subIdxList.forEach((si) => {
+      const deckIdx = filledBySlot[si];
+      if (deckIdx == null) return;
+      const card = orderedDeck[deckIdx];
+
+      const pair = Math.floor(si / 2);
+      const key = slotKeyByPair(pair);
+      if (key) {
+        setCard(key, 'sub', {
+          id: card.id,
+          name: card.name,
+          frontSrc: card.frontSrc,
+          reversed: card.reversed,
+        });
+      }
+
+      flipIdSet.add(card.id);
+    });
+
+    expectFlipIdsRef.current = flipIdSet;
+    navigatingRef.current = true;
+
+    subIdxList.forEach((si, order) => {
+      const deckIdx = filledBySlot[si];
+      const ref = deckIdx != null ? cardRefs.current[deckIdx] : null;
+      setTimeout(() => {
+        ref?.flip(true);
+      }, order * 150);
+    });
+  }, [clarifyMode, slotRefs?.length, orderedDeck, filledBySlot, slots, setCard]);
 
   const onDragEndFactory =
     (idx: number) =>
@@ -181,16 +353,44 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       const cX = payload.cardRect.left + payload.cardRect.width / 2;
       const cY = payload.cardRect.top + payload.cardRect.height / 2;
 
+      const isVisible = (el: Element) => {
+        const style = window.getComputedStyle(el as HTMLElement);
+        if (style.visibility === 'hidden') return false;
+        if (style.opacity === '0') return false;
+        const rect = (el as HTMLElement).getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return false;
+        return true;
+      };
+
+      const n = slotRefs.length;
+      const order: number[] = [];
+      if (clarifyMode) {
+        for (let i = 0; i < n; i += 2) {
+          if (i + 1 < n) order.push(i + 1);
+          order.push(i);
+        }
+      } else {
+        for (let i = 0; i < n; i += 2) {
+          order.push(i);
+          if (i + 1 < n) order.push(i + 1);
+        }
+      }
+
       let hit: number | null = null;
-      for (let i = 0; i < slotRefs.length; i++) {
+
+      for (const i of order) {
         const el = slotRefs[i]?.current;
         if (!el) continue;
+        if (!isVisible(el)) continue;
+
         const r = el.getBoundingClientRect();
-        if (cX > r.left && cX < r.right && cY > r.top && cY < r.bottom) {
+        const within = cX > r.left && cX < r.right && cY > r.top && cY < r.bottom;
+        if (within) {
           hit = i;
           break;
         }
       }
+
       if (hit === null) {
         restore();
         return;
@@ -228,13 +428,12 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       if (root) root.dataset.fitr = '0.8';
 
       onSnap?.(hit, _id);
-
       scheduleRealign(idx, hit!, 220);
     };
 
   return (
     <>
-      {deck.map((c, i) => {
+      {orderedDeck.map((c, i) => {
         const snapped = slotOfCard[i] != null;
         return (
           <div
@@ -259,6 +458,21 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                 width={cardWidth}
                 reversed={c.reversed}
                 flipDir={c.reversed ? 1 : -1}
+                onFlip={(id, faceUp) => {
+                  if (!navigatingRef.current) return;
+                  if (!faceUp) return;
+                  if (!expectFlipIdsRef.current.has(id)) return;
+                  expectFlipIdsRef.current.delete(id);
+                  if (expectFlipIdsRef.current.size === 0) {
+                    navigatingRef.current = false;
+                    if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
+                    navigateTimerRef.current = window.setTimeout(() => {
+                      setStage('results');
+                      navigate('/tarot/result', { replace: true });
+                      navigateTimerRef.current = null;
+                    }, 3000);
+                  }
+                }}
                 onDragStart={(_, payload) => {
                   const wrap = wrapsRef.current[i];
                   if (wrap) {
