@@ -101,7 +101,7 @@ function RecordDetail({ tarotId, contents, type }: Props) {
               // 오른쪽 절반에만 위치
               'absolute top-0 right-2 w-1/2 h-full rounded-xl',
               // 표지 디자인
-              'bg-[url(/images/bookfirst_1.png)] bg-cover bg-center',
+              'bg-[url(/images/bookfirst_1.webp)] bg-cover bg-center',
               'border-2 border-black/20 shadow-[0_10px_30px_rgba(0,0,0,0.25)] '
             )}
           />
@@ -116,7 +116,7 @@ function RecordDetail({ tarotId, contents, type }: Props) {
                 >
                   <div
                     className={
-                      'w-full h-full rounded-xl bg-[url(/images/book_inner.png)] bg-cover bg-center '
+                      'w-full h-full rounded-xl bg-[url(/images/book_inner.webp)] bg-cover bg-center '
                     }
                   >
                     {tarotInfoList && (
@@ -142,7 +142,7 @@ function RecordDetail({ tarotId, contents, type }: Props) {
               >
                 <div
                   className={
-                    'w-full h-full rounded-xl bg-[url(/images/book_inner.png)] bg-cover bg-center '
+                    'w-full h-full rounded-xl bg-[url(/images/book_inner.webp)] bg-cover bg-center '
                   }
                 >
                   {i == 0 && (

@@ -59,7 +59,7 @@ function TarotRecordDescription({
       )}
       {type === 'read' && (
         <div className="h-[40%] flex gap-5 justify-center items-center border-2  rounded-2xl">
-          <img className="w-[50%]" src="/images/threeCard.png" alt="세 장의 카드 뒷면 이미지" />
+          <img className="w-[50%]" src="/images/threeCard.webp" alt="세 장의 카드 뒷면 이미지" />
           <Link
             to={'/tarot'}
             className="font-semibold border border-gray-400 rounded-2xl p-2 text-main-black hover:scale-110"
