@@ -1,13 +1,6 @@
 import { showAlert } from '@/common/utils/sweetalert';
 import supabase from '../supabase/supabase';
-import type { TarotAnalysis } from '@/common/types/TarotAnalysis';
-
-type CardInfoProps = {
-  cardName: string;
-  direction: string;
-  subCard?: string;
-  subCardDirection?: string;
-};
+import type { CardInfoProps, TarotAnalysis } from '@/common/types/TarotAnalysis';
 
 export async function geminiTarotAnalysis(
   topic: string,

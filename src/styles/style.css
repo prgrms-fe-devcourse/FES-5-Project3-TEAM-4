@@ -1,6 +1,6 @@
 /* @import "tailwindcss"; */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&family=Quicksand:wght@300..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @plugin 'tailwind-scrollbar';
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:weight@400;700&display=swap');
 
 @layer theme, base, components, utilities;
 

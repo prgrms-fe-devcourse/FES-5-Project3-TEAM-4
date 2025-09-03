@@ -1,6 +1,7 @@
 import type { Tables } from '@/common/api/supabase/database.types';
 import { useState } from 'react';
-import RecordPopup from './RecordPopup';
+import NightStarPopup from '@/common/components/NightStarPopup';
+import RecordDetail from './RecordDetail';
 
 interface Props {
   tarotId: string;
@@ -31,11 +32,13 @@ function RecordItem({ tarotId, createdAt, recordData }: Props) {
         </a>
       </li>
       {popOpen && (
-        <RecordPopup
-          tarotId={tarotId}
-          contents={recordData.length > 0 ? recordData[0].contents : ''}
-          onClose={() => setPopOpen((prev) => !prev)}
-        />
+        <NightStarPopup onClose={() => setPopOpen((prev) => !prev)}>
+          <RecordDetail
+            tarotId={tarotId}
+            contents={recordData.length > 0 ? recordData[0].contents : ''}
+            type="write"
+          />
+        </NightStarPopup>
       )}
     </>
   );

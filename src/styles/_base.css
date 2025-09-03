@@ -3,7 +3,7 @@
     min-block-size: 100vh;
   }
   body {
-    @apply font-mono;
+    @apply font-sans;
   }
   [hidden] {
     display: none !important;
