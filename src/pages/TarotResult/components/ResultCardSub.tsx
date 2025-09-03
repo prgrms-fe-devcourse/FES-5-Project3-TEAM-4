@@ -29,7 +29,7 @@ function ResultCardSub({
         faceUp
         reversed={reversed}
         locked
-        className="shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
+        className=""
       />
       <div
         className={['text-center text-sm md:text-base text-main-white', nameClassName]
