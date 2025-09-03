@@ -9,7 +9,7 @@ function Login() {
       <AuthForm>
         <h2 className="pt-9 text-main-white text-2xl font-bold">Login</h2>
         <LoginForm />
-        <hr className="text-main-white w-83" />
+        <hr className="text-main-white w-[90%] md:w-83 " />
         <OAuthButton />
       </AuthForm>
     </Bg>
