@@ -4,7 +4,7 @@ import DrawSlot from './components/DrawSlot';
 
 const SLOT_LABELS = ['Past', 'Present', 'Future'] as const;
 
-export default function Index() {
+export default function TarotSpreadDraw() {
   const slotRef1 = useRef<HTMLDivElement>(null);
   const slotRef2 = useRef<HTMLDivElement>(null);
   const slotRef3 = useRef<HTMLDivElement>(null);
