@@ -1,3 +1,4 @@
+// src/pages/Tarot/components/Spread.tsx
 import { useRef, useCallback, useEffect, useState, useMemo, type RefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
@@ -12,6 +13,10 @@ import {
 } from '@/pages/Tarot/utils/buildCardsFromStore';
 import Loading from '@/common/components/Loading';
 import { createPortal } from 'react-dom';
+
+import supabase from '@/common/api/supabase/supabase';
+import { saveTarotResult, updateTarotSummary } from '@/pages/TarotResult/utils/saveTarotResult';
+import { saveTarotInfoMain, saveTarotInfoSubs } from '@/pages/TarotResult/utils/saveTarotInfo';
 
 type Props = {
   deck: TarotCardModel[];
@@ -37,6 +42,8 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
   const clarifyMode = tarotStore((s) => s.clarifyMode);
   const spreadSnapshot = tarotStore((s) => s.spreadSnapshot);
   const saveSpreadSnapshot = tarotStore((s) => s.saveSpreadSnapshot);
+  const setReadingId = tarotStore((s) => s.setReadingId);
+  const readingId = tarotStore((s) => s.readingId);
 
   const topic = tarotStore((s) => s.topic);
   const question = tarotStore((s) => s.question);
@@ -49,6 +56,9 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
   const navigatingRef = useRef(false);
   const restoredOnceRef = useRef(false);
   const phaseRef = useRef<'main' | 'sub' | null>(null);
+
+  const tarotIdRef = useRef<string | null>(null);
+  const mainInfoIdMapRef = useRef<Record<string, string>>({});
 
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('Loading...');
@@ -75,6 +85,41 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       fetchInFlightRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (readingId && !tarotIdRef.current) {
+      tarotIdRef.current = readingId;
+    }
+  }, [readingId]);
+
+  const ensureTarotId = useCallback(async (): Promise<string | null> => {
+    if (tarotIdRef.current) return tarotIdRef.current;
+    if (readingId) {
+      tarotIdRef.current = readingId;
+      return readingId;
+    }
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth?.user?.id;
+      if (!uid) return null;
+
+      const { data } = await supabase
+        .from('tarot')
+        .select('id')
+        .eq('profile_id', uid)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      const id = data?.[0]?.id ?? null;
+      if (id) {
+        tarotIdRef.current = id;
+        setReadingId(id);
+      }
+      return id;
+    } catch {
+      return null;
+    }
+  }, [readingId, setReadingId]);
 
   const setWrapRef = useCallback(
     (i: number) => (el: HTMLDivElement | null) => {
@@ -502,6 +547,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                   if (!faceUp) return;
                   if (!expectFlipIdsRef.current.has(id)) return;
                   expectFlipIdsRef.current.delete(id);
+
                   if (expectFlipIdsRef.current.size === 0) {
                     navigatingRef.current = false;
 
@@ -509,6 +555,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                       mainSentOnceRef.current = true;
                       const cards = buildMainCardsFromStore();
                       const msg = (question || '').trim() || '가까운 시일 내 흐름의 포인트는?';
+
                       fetchInFlightRef.current = true;
                       if (loadingDelayTimerRef.current) clearTimeout(loadingDelayTimerRef.current);
                       loadingDelayTimerRef.current = window.setTimeout(() => {
@@ -518,9 +565,22 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                         }
                         loadingDelayTimerRef.current = null;
                       }, 3000);
+
                       try {
                         const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
-                        console.log('[Gemini][main]', { topic, msg, cards, data });
+                        if (data) {
+                          if (!tarotIdRef.current) {
+                            const tarotRow = await saveTarotResult(data);
+                            if (tarotRow) {
+                              tarotIdRef.current = tarotRow.id;
+                              setReadingId(tarotRow.id);
+                            }
+                          }
+                          if (tarotIdRef.current) {
+                            const map = await saveTarotInfoMain(data, tarotIdRef.current);
+                            if (map) mainInfoIdMapRef.current = map;
+                          }
+                        }
                       } finally {
                         fetchInFlightRef.current = false;
                         if (loadingDelayTimerRef.current) {
@@ -536,6 +596,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                       subSentOnceRef.current = true;
                       const cards = buildCardsWithSubsFromStore();
                       const msg = (question || '').trim() || '보조 카드까지 포함한 상세 리딩';
+
                       fetchInFlightRef.current = true;
                       if (loadingDelayTimerRef.current) clearTimeout(loadingDelayTimerRef.current);
                       loadingDelayTimerRef.current = window.setTimeout(() => {
@@ -545,9 +606,16 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                         }
                         loadingDelayTimerRef.current = null;
                       }, 3000);
+
                       try {
                         const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
-                        console.log('[Gemini][sub]', { topic, msg, cards, data });
+                        if (data) {
+                          const tid = await ensureTarotId();
+                          if (tid) {
+                            await updateTarotSummary(tid, data);
+                            await saveTarotInfoSubs(data, tid, mainInfoIdMapRef.current);
+                          }
+                        }
                       } finally {
                         fetchInFlightRef.current = false;
                         if (loadingDelayTimerRef.current) {
