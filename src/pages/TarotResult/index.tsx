@@ -80,8 +80,13 @@ export default function TarotResult() {
         </div>
       </div>
 
-      <p className="flex justify-center items-center text-main-white py-5">
-        👆🏻카드 클릭 시 해석을 확인할 수 있습니다.👆🏻
+      <p>
+        <span className="flex justify-center items-center text-main-white py-b-2">
+          👆🏻카드 클릭 시 해석을 확인할 수 있습니다.👆🏻
+        </span>
+        <span className="flex justify-center items-center text-red-500">
+          🚨비로그인 유저의 경우, 타로 결과는 저장할 수 없습니다.🚨
+        </span>
       </p>
     </div>
   );
