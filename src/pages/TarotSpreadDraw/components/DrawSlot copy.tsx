@@ -7,11 +7,12 @@ type Props = {
   active?: boolean;
   width?: number | string;
   height?: number;
+  ratio?: number;
   className?: string;
 };
 
-const DrawSubSlot = forwardRef<HTMLDivElement, Props>(function DrawSubSlot(
-  { label = 'Sub', filled = false, active = false, width = 240, height = 420, className },
+const DrawSlot = forwardRef<HTMLDivElement, Props>(function DrawSlot(
+  { label = 'Slot', filled = false, active = false, width = 240, height = 420, className },
   ref
 ) {
   return (
@@ -20,11 +21,11 @@ const DrawSubSlot = forwardRef<HTMLDivElement, Props>(function DrawSubSlot(
       data-slot
       style={{ width, height }}
       className={clsx(
-        'relative z-0 rounded-xl border-2 border-dashed transition-all pointer-events-none bg-white/5',
+        'relative rounded-xl border-2 border-dashed transition-all pointer-events-none  bg-white/5',
         filled ? 'border-main-white/80' : 'border-main-white/20',
         active &&
           !filled &&
-          'ring-2 ring-[#EB3678]/30 ring-offset-2 ring-offset-[#0E0724] scale-[1.01]',
+          'ring-2 ring-[#EB3678]/40 ring-offset-2 ring-offset-[#0E0724] scale-[1.02]',
         className
       )}
     >
@@ -40,4 +41,4 @@ const DrawSubSlot = forwardRef<HTMLDivElement, Props>(function DrawSubSlot(
   );
 });
 
-export default DrawSubSlot;
+export default DrawSlot;

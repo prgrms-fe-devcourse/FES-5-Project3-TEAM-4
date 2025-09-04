@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { TopicLabel } from '@/common/types/TarotTopics';
 
 export type Slot = 'past' | 'present' | 'future';
 export const SLOTS: readonly Slot[] = ['past', 'present', 'future'] as const;
@@ -22,14 +23,15 @@ type SpreadSnapshot = {
 type State = {
   readingId?: string;
   question: string;
+  topic: TopicLabel | null;
   slots: Record<Slot, SlotPack>;
   stage: 'spread' | 'results' | 'clarify';
-
   clarifyMode: boolean;
   spreadSnapshot?: SpreadSnapshot;
 
   setReadingId: (id?: string) => void;
   setQuestion: (q: string) => void;
+  setTopic: (t: TopicLabel | null) => void;
   setStage: (stage: State['stage']) => void;
   setCard: (slot: Slot, kind: keyof SlotPack, card: CardPick | null) => void;
   setSlotPack: (slot: Slot, pack: Partial<SlotPack>) => void;
@@ -50,14 +52,15 @@ const initialSlots: Record<Slot, SlotPack> = {
 export const tarotStore = create<State>((set) => ({
   readingId: undefined,
   question: '',
+  topic: null,
   slots: { ...initialSlots },
   stage: 'spread',
-
   clarifyMode: false,
   spreadSnapshot: undefined,
 
   setReadingId: (readingId) => set({ readingId }),
   setQuestion: (question) => set({ question }),
+  setTopic: (topic) => set({ topic }),
   setStage: (stage) => set({ stage }),
 
   setCard: (slot, kind, card) =>
@@ -74,6 +77,7 @@ export const tarotStore = create<State>((set) => ({
     set({
       readingId: undefined,
       question: '',
+      topic: null,
       slots: { ...initialSlots },
       stage: 'spread',
       clarifyMode: false,
