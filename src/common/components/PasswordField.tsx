@@ -21,7 +21,10 @@ function PasswordField({ onChange, className, placeholder = 'Password' }: Props)
 
   return (
     <>
-      <label htmlFor={inputId} className={tw('border-b border-b-main-white flex w-83', className)}>
+      <label
+        htmlFor={inputId}
+        className={tw('border-b border-b-main-white flex md:w-83 w-full', className)}
+      >
         <input
           className="h-8 text-main-white focus:outline-none flex-1"
           type={isPasswordShow ? 'password' : 'text'}

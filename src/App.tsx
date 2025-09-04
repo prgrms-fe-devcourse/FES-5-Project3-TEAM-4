@@ -1,7 +1,7 @@
 import { RouterProvider } from 'react-router';
 import { routes } from './router/routes';
-import { Suspense } from 'react';
-import Loading from './common/components/Loading';
+import { lazy, Suspense } from 'react';
+const Loading = lazy(() => import('@/common/components/Loading'));
 
 function App() {
   return (

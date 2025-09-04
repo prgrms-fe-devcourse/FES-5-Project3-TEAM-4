@@ -31,22 +31,25 @@ function RegisterForm() {
   };
 
   return (
-    <form className="flex flex-col items-center gap-20" onSubmit={handleSignUp}>
-      <div className="flex flex-col gap-9">
+    <form className="flex flex-col items-center gap-15 w-[90%]" onSubmit={handleSignUp}>
+      <div className="flex flex-col items-center gap-9 w-83">
         <EmailField onChange={(email: string) => setEmail(email)} />
         <PasswordField onChange={(email: string) => setPassword(email)} />
-        <div>
-          <PasswordField onChange={(email: string) => setPasswordConfirm(email)} />
+        <PasswordField
+          onChange={(email: string) => setPasswordConfirm(email)}
+          placeholder="Confirm Password"
+        />
+        <div className="w-full">
           <AuthValidate validateText={validation} />
           <Link className="text-main-white" to={'/auth/login'}>
             Sign In
           </Link>
         </div>
       </div>
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center w-full">
         <button
           type="submit"
-          className="text-center font-semibold w-83 h-8 text-main-white border rounded-2xl cursor-pointer text-l border-main-white hover:text-main-black hover:bg-main-white"
+          className="text-center font-semibold md:w-83 w-[90%] h-8 text-main-white border rounded-2xl cursor-pointer text-l border-main-white hover:text-main-black hover:bg-main-white"
         >
           Sign Up
         </button>

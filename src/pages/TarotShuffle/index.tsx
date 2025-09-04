@@ -16,10 +16,23 @@ export default function TarotShuffle({ onProceed }: Props) {
   };
 
   return (
-    <div className="flex flex-col py-16 w-full h-[90vh] justify-center items-center gap-10 text-main-white">
-      <ShuffleCards />
-      <h2>질문을 마음 속으로 충분히 그려보신 뒤 카드 뽑기를 시작하세요.</h2>
-      <StopShuffleBtn onClick={goNext} />
+    <div
+      className="flex flex-col w-full min-h-screen items-center text-main-white bg-[url('/velvet.png')]"
+      style={{
+        backgroundImage: "url('/velvet.png')",
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '100% 100%',
+      }}
+    >
+      <div className="flex flex-col items-center gap-10 flex-grow justify-center">
+        <ShuffleCards />
+      </div>
+
+      <div className="flex flex-col gap-5 mb-10 pl-4 pr-4">
+        <h2>질문을 마음속으로 충분히 그려보신 뒤, 멈추고 싶을 때 멈추시면 됩니다.</h2>
+
+        <StopShuffleBtn onClick={goNext} />
+      </div>
     </div>
   );
 }
