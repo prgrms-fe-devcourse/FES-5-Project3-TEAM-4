@@ -97,7 +97,7 @@ function TarotCardDescription({ name, infoId, result, subInfo }: Props) {
         </div>
 
         <p className="text-xl font-semibold">{hasSub ? (flipped ? name : subCard?.name) : name}</p>
-        <p className={`text-sm max-h-[128px] overflow-y-auto break-all ${scroll}`}>
+        <p className={`text-sm max-h-[80px] overflow-y-auto break-keep ${scroll}`}>
           {hasSub ? (flipped ? result : subCard?.result) : result}
         </p>
       </div>

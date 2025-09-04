@@ -23,7 +23,9 @@ function OAuthCallback() {
 
       const userData = data.session?.user ?? '';
       if (!userData || typeof userData === 'string') {
-        showAlert('error', '회원가입에 실패하였습니다', '다시 시도해주세요');
+        showAlert('error', '회원가입에 실패하였습니다', '다시 시도해주세요', () => {
+          navigate('/auth/login');
+        });
         return;
       }
       const userInfo = await selectProfileData(userData.id);

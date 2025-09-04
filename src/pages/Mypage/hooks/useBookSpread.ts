@@ -6,6 +6,8 @@ interface BookSpreadProps {
   coverRef: RefObject<HTMLDivElement | null>;
   duration?: number;
   stagger?: number;
+  onCompleteCallback?: () => void;
+  type?: 'write' | 'read' | 'result';
 }
 
 export function useBookSpread({
@@ -13,6 +15,8 @@ export function useBookSpread({
   coverRef,
   duration = 1,
   stagger = 0.08,
+  onCompleteCallback,
+  type,
 }: BookSpreadProps) {
   useLayoutEffect(() => {
     if (!pagesRef || !coverRef) return;
@@ -37,6 +41,11 @@ export function useBookSpread({
       const tl = gsap.timeline({
         paused: true,
         defaults: { ease: 'power2.out' },
+        onComplete: () => {
+          if (!onCompleteCallback) return;
+          if (type !== 'result') return;
+          onCompleteCallback();
+        },
       });
       tl.to(coverRef.current, {
         rotateY: -175,

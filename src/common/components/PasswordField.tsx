@@ -2,7 +2,7 @@ import { useId, useState } from 'react';
 import tw from '../utils/tw';
 
 interface Props {
-  onChange: (email: string) => void;
+  onChange: (password: string) => void;
   className?: string;
   placeholder?: string;
 }

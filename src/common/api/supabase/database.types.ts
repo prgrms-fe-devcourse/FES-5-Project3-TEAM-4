@@ -286,6 +286,45 @@ export type Database = {
           },
         ];
       };
+      tarot_image: {
+        Row: {
+          created_at: string;
+          id: string;
+          image_url: string | null;
+          profile_id: string | null;
+          tarot_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          image_url?: string | null;
+          profile_id?: string | null;
+          tarot_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          image_url?: string | null;
+          profile_id?: string | null;
+          tarot_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'tarot_image_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profile';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tarot_image_tarot_id_fkey';
+            columns: ['tarot_id'];
+            isOneToOne: false;
+            referencedRelation: 'tarot';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       tarot_info: {
         Row: {
           created_at: string | null;
