@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
-import card from '@/assets/home/Wheel_of_Fortune.webp';
+// import card from '@/assets/home/Wheel_of_Fortune.webp';
 import SecondQ1 from './SecondQ1';
 import SecondQ2 from './SecondQ2';
 import MainStar from '../../components/MainStar';
 import CardSpin from '../CardSpin';
 import WheelOfFortune from './WheelOfFortune';
 import SplitAnswer from '../SplitAnswer';
+import { useFilterCardName } from '@/common/store/cardStore';
 
 interface Props {
   ref?: React.RefObject<HTMLElement | null>;
@@ -20,6 +21,8 @@ function SecondTarot({ ref: outerRef, register }: Props) {
   const textBoxRef = useRef<HTMLImageElement>(null);
 
   const scopeRef = outerRef ?? sectionRef03;
+
+  const cardImg = useFilterCardName('Wheel of Fortune')[0].image_url;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -65,7 +68,13 @@ function SecondTarot({ ref: outerRef, register }: Props) {
         <SecondQ2 parentTimeline={parentTLRef} label="secondQuestion2" />
 
         <div className="w-screen flex flex-row justify-center items-center gap-9 ">
-          <CardSpin parentTimeline={parentTLRef} label="spin" imgFront={card} x={-200} y={-100} />
+          <CardSpin
+            parentTimeline={parentTLRef}
+            label="spin"
+            imgFront={cardImg}
+            x={-200}
+            y={-100}
+          />
 
           <div>
             <WheelOfFortune parentTimeline={parentTLRef} label="cardName" />

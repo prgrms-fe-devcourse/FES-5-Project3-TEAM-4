@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
-import card1 from '@/assets/home/Three_of_Swords.webp';
-import card2 from '@/assets/home/Two_of_Cups.webp';
+// import card1 from '@/assets/home/Three_of_Swords.webp';
+// import card2 from '@/assets/home/Two_of_Cups.webp';
 import LastQ from './LastQ';
 
 import ThreeOfSwords from './ThreeOfSwords';
@@ -10,6 +10,7 @@ import TwoOfCups from './TwoOfCups';
 import MainStar from '../../components/MainStar';
 import CardSpin from '../CardSpin';
 import SplitAnswer from '../SplitAnswer';
+import { useFilterCardName } from '@/common/store/cardStore';
 
 interface Props {
   ref?: React.RefObject<HTMLElement | null>;
@@ -23,6 +24,9 @@ function LastTarot({ ref: outerRef, register }: Props) {
   const textBoxRef = useRef<HTMLImageElement>(null);
 
   const scopeRef = outerRef ?? sectionRef03;
+
+  const card1Img = useFilterCardName('Three of Swords')[0].image_url;
+  const card2Img = useFilterCardName('Two of Cups')[0].image_url;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -69,7 +73,13 @@ function LastTarot({ ref: outerRef, register }: Props) {
         <LastQ parentTimeline={parentTLRef} label="lastQuestion" />
 
         <div className="w-screen flex flex-row justify-center items-center gap-9 ">
-          <CardSpin parentTimeline={parentTLRef} label="spin1" imgFront={card1} x={-200} y={-100} />
+          <CardSpin
+            parentTimeline={parentTLRef}
+            label="spin1"
+            imgFront={card1Img}
+            x={-200}
+            y={-100}
+          />
 
           <div>
             <ThreeOfSwords parentTimeline={parentTLRef} label="cardName1" />
@@ -87,7 +97,13 @@ function LastTarot({ ref: outerRef, register }: Props) {
               </SplitAnswer>
             </div>
           </div>
-          <CardSpin parentTimeline={parentTLRef} label="spin2" imgFront={card2} x={-200} y={-100} />
+          <CardSpin
+            parentTimeline={parentTLRef}
+            label="spin2"
+            imgFront={card2Img}
+            x={-200}
+            y={-100}
+          />
         </div>
       </div>
     </section>

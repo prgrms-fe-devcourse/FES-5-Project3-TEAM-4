@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
-import card from '@/assets/home/Ace_of_Pentacles.webp';
+// import card from '@/assets/home/Ace_of_Pentacles.webp';
 import FirstQ from './FirstQ';
 
 import AceOfPentacles from './AceOfPentacles';
 import MainStar from '../../components/MainStar';
 import CardSpin from '../CardSpin';
 import SplitAnswer from '../SplitAnswer';
+import { useFilterCardName } from '@/common/store/cardStore';
 
 interface Props {
   ref?: React.RefObject<HTMLElement | null>;
@@ -20,6 +21,8 @@ function FirstTarot({ ref: outerRef, register }: Props) {
   const textBoxRef = useRef<HTMLImageElement>(null);
 
   const scopeRef = outerRef ?? sectionRef03;
+
+  const cardImg = useFilterCardName('Ace of Pentacles')[0].image_url;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -61,7 +64,13 @@ function FirstTarot({ ref: outerRef, register }: Props) {
         <FirstQ parentTimeline={parentTLRef} label="firstQuestion" />
 
         <div className="w-screen flex flex-row justify-center items-center gap-9 ">
-          <CardSpin parentTimeline={parentTLRef} label="spin" imgFront={card} x={-200} y={-100} />
+          <CardSpin
+            parentTimeline={parentTLRef}
+            label="spin"
+            imgFront={cardImg}
+            x={-200}
+            y={-100}
+          />
 
           <div>
             <AceOfPentacles parentTimeline={parentTLRef} label="cardName" />
