@@ -6,7 +6,7 @@ import StudyIcon from '@/assets/Tarot/icons/study.svg';
 import MoneyIcon from '@/assets/Tarot/icons/money.svg';
 import HealthIcon from '@/assets/Tarot/icons/health.svg';
 import QuestionIcon from '@/assets/Tarot/icons/question.svg';
-import { TOPIC_LABEL, type TopicLabel } from '@/common/types/TarotTopics';
+import { TOPIC_LABEL, type TopicLabel } from '../types/TarotTopics';
 
 type TopicPromptProps = {
   selectedTopic: TopicLabel | null;

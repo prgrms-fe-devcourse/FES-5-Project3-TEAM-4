@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopicButton from './components/TopicButton';
 import TopicPrompt from './components/TopicPrompt';
-import { TOPIC_LABEL_LIST, type TopicLabel } from '@/common/types/TarotTopics';
+import { TOPIC_LABEL_LIST, type TopicLabel } from './types/TarotTopics';
 import CrystalBallStage from './components/CrystalBallStage';
 import CrystalSphere from '@/assets/Tarot/crystal_sphere.png';
 import QuestionExamples from './components/QuestionExamples';
