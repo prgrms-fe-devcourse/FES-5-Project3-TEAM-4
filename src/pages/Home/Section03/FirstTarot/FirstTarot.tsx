@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
 
 // import card from '@/assets/home/Ace_of_Pentacles.webp';
@@ -24,7 +24,7 @@ function FirstTarot({ ref: outerRef, register }: Props) {
 
   const cardImg = useFilterCardName('Ace of Pentacles')[0].image_url;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       register((tl) => {
         parentTLRef.current = tl;
