@@ -44,7 +44,7 @@ export default function CrystalBallLetters({
     const R = boxSize / 2 - rimPadding;
     const baseScaleByCount = (len: number) => (len <= 4 ? 1.1 : len >= 6 ? 0.9 : 1);
     const k = 1.0;
-    const safeR = R - 2;
+    const safeR = R - 5;
 
     const randPointInCircle = (radius: number) => {
       const t = Math.random() * Math.PI * 2;

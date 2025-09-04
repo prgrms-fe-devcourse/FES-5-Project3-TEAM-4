@@ -30,7 +30,7 @@ export default function TarotQuestion({
   const [pickedQuestion, setPickedQuestion] = useState<string>(presetQuestion);
 
   return (
-    <div className="mx-auto w-full md:max-w-screen-md lg:max-w-screen-lg px-4 md:px-5 lg:px-6 space-y-3 lg:space-y-4 pb-2 md:pb-3 lg:pb-4">
+    <div className="mx-auto w-full md:max-w-screen-md lg:max-w-screen-lg px-4 md:px-5 lg:px-6 space-y-3 lg:space-y-4 pt-2 md:pt-3 lg:pt-4">
       <section className="relative isolate z-0 mx-auto aspect-square w-[clamp(440px,80vw,520px)] md:w-[clamp(460px,72vw,580px)] lg:w-[clamp(500px,46vw,680px)] -mb-8 md:-mb-12 lg:-mb-16">
         <img
           src={CrystalSphere}
@@ -38,8 +38,8 @@ export default function TarotQuestion({
           alt=""
           className="pointer-events-none absolute inset-0 z-0 w-full h-full object-contain top-8"
         />
-        <div className="relative z-10 w-full h-full flex items-center justify-center">
-          <CrystalBallStage selectedTopic={selectedTopic} />
+        <div className="relative z-10 w-full h-full flex items-center justify-center lg:-top-0.25 md:top-2">
+          <CrystalBallStage selectedTopic={selectedTopic} size={450} rimPadding={90} />
         </div>
       </section>
 
