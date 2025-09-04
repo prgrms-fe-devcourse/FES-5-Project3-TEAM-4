@@ -25,6 +25,11 @@ const Likes = lazy(() => import('@/pages/Mypage/components/Likes'));
 const Record = lazy(() => import('@/pages/Mypage/components/Record'));
 const KakaoShare = lazy(() => import('@/pages/KakaoShare/KakaoShare'));
 
+const TarotQuestion = lazy(() => import('@/pages/TarotQuestion'));
+const TarotShuffle = lazy(() => import('@/pages/TarotShuffle'));
+const TarotSpreadDraw = lazy(() => import('@/pages/TarotSpreadDraw'));
+const TarotResult = lazy(() => import('@/pages/TarotResult'));
+
 export const routes = createBrowserRouter([
   {
     path: '/',
@@ -39,6 +44,13 @@ export const routes = createBrowserRouter([
         path: 'tarot',
         Component: Tarot,
         handle: { label: 'Tarot', showInNav: true, icon: TbCards },
+        children: [
+          { index: true, element: <Navigate to="question" replace /> },
+          { path: 'question', Component: TarotQuestion },
+          { path: 'shuffle', Component: TarotShuffle },
+          { path: 'spread', Component: TarotSpreadDraw },
+          { path: 'result', Component: TarotResult },
+        ],
       },
       {
         path: 'community',

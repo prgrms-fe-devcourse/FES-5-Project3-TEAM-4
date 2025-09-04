@@ -21,7 +21,6 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     hoverBackScale = 1.06,
     onFlip,
     onClick,
-    onOpenModal,
     onDragStart,
     onDragEnd,
     className,
@@ -90,10 +89,9 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     (e: React.MouseEvent<HTMLButtonElement>) => {
       if (animatingRef.current || draggingRef.current) return;
       onClick?.(id);
-      if (isFaceUp && !isLocked) onOpenModal?.(id);
       e.currentTarget.blur();
     },
-    [animatingRef, draggingRef, isFaceUp, isLocked, id, onClick, onOpenModal]
+    [animatingRef, draggingRef, id, onClick]
   );
 
   useImperativeHandle(
