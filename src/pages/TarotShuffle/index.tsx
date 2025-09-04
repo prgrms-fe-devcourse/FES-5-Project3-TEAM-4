@@ -31,7 +31,7 @@ export default function TarotShuffle({ onProceed }: Props) {
       <div className="flex flex-col gap-5 mb-10">
         <h2>질문을 마음속으로 충분히 그려보신 뒤, 멈추고 싶을 때 멈추시면 됩니다.</h2>
 
-        <StopShuffleBtn />
+        <StopShuffleBtn onClick={goNext} />
       </div>
     </div>
   );
