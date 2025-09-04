@@ -2,7 +2,7 @@ import star from '@/assets/home/star.svg';
 import gsap from 'gsap';
 import { useEffect, useRef, type RefObject } from 'react';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
-import { useMainStarBlink } from '../hooks/useMainStarBlink';
+import { useMainStarYoyo } from '../hooks/useMainStarYoyo';
 import tw from '@/common/utils/tw';
 
 gsap.registerPlugin(MotionPathPlugin);
@@ -29,7 +29,7 @@ function MainStar({
   const mainStarRef = useRef<HTMLImageElement>(null);
   const starRef = useRef<HTMLImageElement>(null);
 
-  useMainStarBlink(mainStarRef);
+  useMainStarYoyo(mainStarRef);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
