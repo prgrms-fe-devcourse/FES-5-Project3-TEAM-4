@@ -6,8 +6,8 @@ import FirstQ from './FirstQ';
 
 import AceOfPentacles from './AceOfPentacles';
 import MainStar from '../../components/MainStar';
-import CardSpin from '../CardSpin';
-import SplitAnswer from '../SplitAnswer';
+import CardSpin from '../components/CardSpin';
+import SplitAnswer from '../components/SplitAnswer';
 import { useFilterCardName } from '@/common/store/cardStore';
 
 interface Props {

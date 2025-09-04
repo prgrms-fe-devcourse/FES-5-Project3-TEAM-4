@@ -5,9 +5,9 @@ import gsap from 'gsap';
 import SecondQ1 from './SecondQ1';
 import SecondQ2 from './SecondQ2';
 import MainStar from '../../components/MainStar';
-import CardSpin from '../CardSpin';
+import CardSpin from '../components/CardSpin';
 import WheelOfFortune from './WheelOfFortune';
-import SplitAnswer from '../SplitAnswer';
+import SplitAnswer from '../components/SplitAnswer';
 import { useFilterCardName } from '@/common/store/cardStore';
 
 interface Props {

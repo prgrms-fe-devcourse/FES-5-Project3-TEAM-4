@@ -9,6 +9,7 @@ import Section02 from './Section02/Section02';
 import FirstTarot from './Section03/FirstTarot/FirstTarot';
 import SecondTarot from './Section03/SecondTarot/SecondTarot';
 import LastTarot from './Section03/LastTarot/LastTarot';
+import Section04 from './Section04/Section04';
 
 import NightStarBackGround from './components/NightStarBackGround';
 
@@ -18,19 +19,20 @@ gsap.registerPlugin(ScrollSmoother);
 function Home() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const s1Ref = useRef<HTMLDivElement>(null);
 
+  const s1Ref = useRef<HTMLDivElement>(null);
   const s2Ref = useRef<HTMLDivElement>(null);
   const firstTarotRef = useRef<HTMLDivElement>(null);
   const secondTarotRef = useRef<HTMLDivElement>(null);
   const lastTarotRef = useRef<HTMLDivElement>(null);
+  const s4Ref = useRef<HTMLDivElement>(null);
 
   const s1TLRef = useRef<gsap.core.Timeline | null>(null);
-
   const s2TLRef = useRef<gsap.core.Timeline | null>(null);
   const firstTarotTLRef = useRef<gsap.core.Timeline | null>(null);
   const secondTarotTLRef = useRef<gsap.core.Timeline | null>(null);
   const lastTarotTLRef = useRef<gsap.core.Timeline | null>(null);
+  const s4TLRef = useRef<gsap.core.Timeline | null>(null);
 
   const registerS1 = useCallback((adder: (tl: gsap.core.Timeline) => void) => {
     if (!s1TLRef.current) {
@@ -67,12 +69,20 @@ function Home() {
     adder(lastTarotTLRef.current);
   }, []);
 
+  const registerS4 = useCallback((adder: (tl: gsap.core.Timeline) => void) => {
+    if (!lastTarotTLRef.current) {
+      lastTarotTLRef.current = gsap.timeline({ defaults: { ease: 'none' }, paused: true });
+    }
+    adder(lastTarotTLRef.current);
+  }, []);
+
   useGSAP(() => {
     ScrollTrigger.getById('sec01')?.kill();
     ScrollTrigger.getById('sec02')?.kill();
     ScrollTrigger.getById('firstTarot')?.kill();
     ScrollTrigger.getById('secondTarot')?.kill();
     ScrollTrigger.getById('lastTarot')?.kill();
+    ScrollTrigger.getById('sec04')?.kill();
 
     if (s1Ref.current && s1TLRef.current) {
       ScrollTrigger.create({
@@ -144,6 +154,20 @@ function Home() {
         // markers: { startColor: 'green', endColor: 'red' },
       });
     }
+    if (s4Ref.current && s4TLRef.current) {
+      ScrollTrigger.create({
+        id: 'sec04',
+        trigger: s4Ref.current,
+        start: 'top top',
+        end: '+=1000vh',
+        scrub: 2,
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        animation: s4TLRef.current,
+        // markers: true,
+      });
+    }
     // 한 프레임 뒤 측정값 정렬
     requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => {
@@ -152,6 +176,7 @@ function Home() {
       ScrollTrigger.getById('firstTarot')?.kill();
       ScrollTrigger.getById('secondTarot')?.kill();
       ScrollTrigger.getById('lastTarot')?.kill();
+      ScrollTrigger.getById('sec04')?.kill();
     };
   }, []);
 
@@ -165,6 +190,8 @@ function Home() {
           <SecondTarot ref={secondTarotRef} register={registerSecondTarot} />
           <LastTarot ref={lastTarotRef} register={registerLastTarot} />
         </div>
+        <Section04 ref={s4Ref} register={registerS4} />
+
         <NightStarBackGround
           sizeX="100vw"
           sizeY="100vh"
