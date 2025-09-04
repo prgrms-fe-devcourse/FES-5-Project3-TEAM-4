@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { TopicLabel } from '@/common/types/TarotTopics';
+import type { TopicLabel } from '@/pages/TarotQuestion/types/TarotTopics';
 import type { TarotAnalysis } from '@/common/types/TarotAnalysis';
 
 export type Slot = 'past' | 'present' | 'future';
