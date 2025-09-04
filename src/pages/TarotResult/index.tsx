@@ -6,6 +6,7 @@ import TarotFront from '@/assets/Tarot/tarot_front.svg';
 import { isAmbiguous } from './utils/ambiguous';
 
 import { tarotStore, SLOTS, type SlotPack } from '@/pages/Tarot/store/tarotStore';
+import { useResultSticky } from './hooks/useResultSticky';
 
 type CardLike = {
   id: string | number;
@@ -20,6 +21,8 @@ type ResultPairItem = {
 };
 
 export default function TarotResult() {
+  useResultSticky();
+
   const location = useLocation();
   const slots = tarotStore((s) => s.slots);
 

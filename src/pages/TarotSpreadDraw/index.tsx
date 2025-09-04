@@ -1,8 +1,10 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import TarotSpread from './components/TarotSpread';
 import DrawSlotPair from './components/DrawSlotPair';
 import { tarotStore, SLOTS } from '@/pages/Tarot/store/tarotStore';
 import { isAmbiguous } from '../TarotResult/utils/ambiguous';
+import { useNavigate } from 'react-router';
+import { consumeHardReload } from '../Tarot/utils/consumerHardReload';
 
 const SLOT_LABELS = ['Past', 'Present', 'Future'] as const;
 
@@ -33,6 +35,15 @@ export default function TarotSpreadDraw() {
 
   const [filledMain, setFilledMain] = useState<Array<number | string | null>>([null, null, null]);
   const [filledSub, setFilledSub] = useState<Array<number | string | null>>([null, null, null]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (consumeHardReload()) {
+      tarotStore.getState().clearAll();
+      navigate('/tarot/question', { replace: true });
+    }
+  }, [navigate]);
 
   const requireClarifyByIndex = useMemo(
     () =>

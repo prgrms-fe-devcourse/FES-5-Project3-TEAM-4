@@ -1,7 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import ShuffleCards from './components/ShuffleCards';
 import StopShuffleBtn from './components/StopShuffleBtn';
-
+import { useEffect } from 'react';
+import { consumeHardReload } from '../Tarot/utils/consumerHardReload';
+import { tarotStore } from '../Tarot/store/tarotStore';
 type Props = {
   onProceed?: () => void;
 };
@@ -9,6 +11,13 @@ type Props = {
 export default function TarotShuffle({ onProceed }: Props) {
   const navigate = useNavigate();
   const { state } = useLocation() as { state?: { question?: string; topic?: string } };
+
+  useEffect(() => {
+    if (consumeHardReload()) {
+      tarotStore.getState().clearAll();
+      navigate('/tarot/question', { replace: true });
+    }
+  }, [navigate]);
 
   const goNext = () => {
     if (onProceed) onProceed();
