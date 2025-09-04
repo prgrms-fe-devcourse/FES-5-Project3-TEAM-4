@@ -45,6 +45,9 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
   const setReadingId = tarotStore((s) => s.setReadingId);
   const readingId = tarotStore((s) => s.readingId);
 
+  const setTarotId = tarotStore((s) => s.setTarotId);
+  const setGeminiAnalysis = tarotStore((s) => s.setGeminiAnalysis);
+
   const topic = tarotStore((s) => s.topic);
   const question = tarotStore((s) => s.question);
 
@@ -569,9 +572,11 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                       try {
                         const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
                         if (data) {
+                          setGeminiAnalysis(data);
                           if (!tarotIdRef.current) {
                             const tarotRow = await saveTarotResult(data);
                             if (tarotRow) {
+                              setTarotId(tarotRow.id);
                               tarotIdRef.current = tarotRow.id;
                               setReadingId(tarotRow.id);
                             }
@@ -610,6 +615,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                       try {
                         const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
                         if (data) {
+                          setGeminiAnalysis(data);
                           const tid = await ensureTarotId();
                           if (tid) {
                             await updateTarotSummary(tid, data);

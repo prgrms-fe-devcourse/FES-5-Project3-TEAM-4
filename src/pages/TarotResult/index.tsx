@@ -72,7 +72,7 @@ export default function TarotResult() {
       <div className="relative mx-auto max-w-[90vw]">
         <div className="flex flex-wrap items-start justify-center gap-5 md:gap-8">
           {pairs.map((p, i) => (
-            <ResultPair key={i} {...p} />
+            <ResultPair key={i} {...p} index={i} />
           ))}
         </div>
       </div>

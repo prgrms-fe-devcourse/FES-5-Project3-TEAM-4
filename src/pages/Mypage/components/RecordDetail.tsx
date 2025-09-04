@@ -16,6 +16,8 @@ import { showAlert, showConfirmAlert } from '@/common/utils/sweetalert';
 import PopupBottonArea from './PopupBottonArea';
 import ResultButtonArea from './ResultButtonArea';
 
+import { captureResult } from '@/common/utils/captureResult';
+
 //애니메이션을 보여줄 페이지 갯수
 const ANIMATE_PAGE_LENGTH = 20;
 
@@ -36,12 +38,16 @@ function RecordDetail({ tarotId, contents, type, onClose }: Props) {
   const [mode, setMode] = useState<'init' | 'edit'>('init');
   const userId = useAuth((state) => state.userId);
 
+  const rootRef = useRef<HTMLDivElement>(null); // ← 캡처할 “자식”에 부착
+
   //책 펼치는 애니메이션 커스텀 훅
   useBookSpread({
     pagesRef,
     coverRef,
     duration: 1,
     stagger: 0.04,
+    onCompleteCallback: () => captureResult(rootRef, tarotId, userId),
+    type,
   });
 
   useEffect(() => {
@@ -91,7 +97,11 @@ function RecordDetail({ tarotId, contents, type, onClose }: Props) {
   };
 
   return (
-    <section id="container" className="absolute z-1 w-full h-full flex flex-col items-center">
+    <section
+      ref={rootRef}
+      id="container"
+      className="absolute z-1 w-full h-full flex flex-col items-center"
+    >
       {type === 'write' && (
         <PopupBottonArea mode={mode} onDelete={() => handleDelete()} onSave={() => handleSave()} />
       )}
@@ -140,7 +150,7 @@ function RecordDetail({ tarotId, contents, type, onClose }: Props) {
               <div
                 key={i}
                 className={tw(
-                  'page absolute rounded-xl right-0 w-1/2 h-full border-1 border-main-black pt-4 pr-4 pb-4 bg-[#272524]'
+                  `page absolute rounded-xl right-0 w-1/2 h-full border-1 border-main-black pt-4 pr-4 pb-4 bg-[#272524]  ${i !== 0 ? 'no-capture' : ''}`
                 )}
               >
                 <div
