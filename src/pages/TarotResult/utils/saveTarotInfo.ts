@@ -32,6 +32,7 @@ type CardLike = {
   name?: string | null;
   title?: string | null;
   interpretation?: string | null;
+  keywordsInterpretation?: string | null;
   subcards?: SubLike | SubLike[] | null;
   subs?: SubLike | SubLike[] | null;
   clarify?: SubLike | SubLike[] | null;
@@ -99,8 +100,14 @@ export async function saveTarotInfoMain(
     if (!isCardLike(raw)) continue;
     const name = (str(raw.name) || str(raw.title)).trim();
     if (!name) continue;
-    const result = str(raw.interpretation) || null;
-    if (!unique.has(name)) unique.set(name, { name, result });
+
+    const interpretation = str(raw.interpretation).trim();
+    const keywords = str(
+      (raw as { keywordsInterpretation?: string }).keywordsInterpretation
+    ).trim();
+    const resultJoined = [interpretation, keywords].filter(Boolean).join('\n\n') || null;
+
+    if (!unique.has(name)) unique.set(name, { name, result: resultJoined });
   }
 
   const inserts: TablesInsert<'tarot_info'>[] = [];
