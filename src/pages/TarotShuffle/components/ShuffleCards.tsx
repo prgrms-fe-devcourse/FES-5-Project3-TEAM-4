@@ -4,14 +4,14 @@ import gsap from 'gsap';
 import { useEffect, useMemo, useRef } from 'react';
 import cardBackUrl from '@/assets/Tarot/tarot_back.svg?url';
 
+const CARD_SRC = cardBackUrl;
+const VELVET_URL = '/velvet-light.png';
+
 const THEME = {
-  canvasBg: '#151228',
-  tableColor: '#FFFFFF',
-  tableSvg: '/velvet-light.png',
+  canvasBg: VELVET_URL,
+  tableSvg: VELVET_URL,
   tableRepeat: [3, 3] as [number, number],
 };
-
-const CARD_SRC = cardBackUrl;
 
 function mulberry32(seed: number) {
   let t = seed;
@@ -303,11 +303,7 @@ export default function ShuffleCards() {
   const tableMap = useMemo(() => {
     if (!THEME.tableSvg) return null;
 
-    const src = THEME.tableSvg.trim().startsWith('<svg')
-      ? svgToDataUrl(THEME.tableSvg)
-      : THEME.tableSvg;
-
-    const tex = new THREE.TextureLoader().load(src);
+    const tex = new THREE.TextureLoader().load(VELVET_URL);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     const [rx, ry] = THEME.tableRepeat;
@@ -319,12 +315,12 @@ export default function ShuffleCards() {
   const TABLE_GAP = -0.55;
 
   return (
-    <div className="w-full min-h-screen" style={{ background: THEME.canvasBg }}>
-      <div className="relative mx-auto pt-47" style={{ height: '80vh' }}>
+    <div className="w-screen h-[70vh]" style={{ background: THEME.canvasBg }}>
+      <div className="relative w-screen h-[70vh]">
         <Canvas
           shadows
           camera={{ position: [0, 15, 0], fov: 28 }}
-          style={{ height: '80vh', background: THEME.canvasBg }}
+          style={{ height: '70vh', background: THEME.canvasBg }}
           gl={{
             outputColorSpace: THREE.SRGBColorSpace,
             toneMapping: THREE.ACESFilmicToneMapping,
@@ -357,12 +353,8 @@ export default function ShuffleCards() {
             receiveShadow
           >
             <planeGeometry args={[26, 26]} />
-            <meshStandardMaterial
-              color={THEME.tableColor}
-              map={tableMap ?? undefined}
-              roughness={0.95}
-              metalness={0}
-            />
+            <meshStandardMaterial map={tableMap ?? undefined} roughness={0.95} metalness={0} />
+            {/* <meshBasicMaterial map={tableMap} /> */}
           </mesh>
         </Canvas>
       </div>
