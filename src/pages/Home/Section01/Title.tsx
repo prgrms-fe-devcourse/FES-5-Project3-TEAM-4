@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import gsap from 'gsap';
 
@@ -8,7 +8,7 @@ function Title() {
   const titleRef = useRef<SVGSVGElement | null>(null);
   const drawTween = useRef<gsap.core.Tween | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!titleRef.current) return;
 
     // 모든 path를 선택

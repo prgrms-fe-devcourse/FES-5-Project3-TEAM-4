@@ -1,6 +1,6 @@
 import leftBuilding from '@/assets/home/leftBuilding3x.png';
 import gsap from 'gsap';
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import CloseEyes from './CloseEyes';
 import OpenTarotShop from './OpenTarotShop';
@@ -25,7 +25,7 @@ function Section01({ ref: outerRef, register }: Props) {
 
   const scopeRef = outerRef ?? sectionRef01;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       gsap.set(buildingsRef.current, { transformOrigin: '50% 100%' });
 

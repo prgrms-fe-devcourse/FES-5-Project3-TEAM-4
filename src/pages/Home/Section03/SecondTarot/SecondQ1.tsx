@@ -1,7 +1,6 @@
-import { useRef, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
 
 gsap.registerPlugin(DrawSVGPlugin);
 
@@ -13,24 +12,28 @@ interface Props {
 function SecondQ1({ parentTimeline, label }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  useGSAP(() => {
-    if (!svgRef.current) return;
-    if (!parentTimeline.current) return;
-    // 모든 path를 선택
-    const paths = svgRef.current.querySelectorAll('path');
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      if (!svgRef.current) return;
+      if (!parentTimeline.current) return;
+      // 모든 path를 선택
+      const paths = svgRef.current.querySelectorAll('path');
 
-    parentTimeline.current.fromTo(
-      paths,
-      { drawSVG: '0% 0%' },
-      {
-        duration: 10,
-        stagger: 0.7,
-        drawSVG: '0% 100%',
-        ease: 'none',
-      },
-      label
-    );
-  }, []);
+      parentTimeline.current.fromTo(
+        paths,
+        { drawSVG: '0% 0%' },
+        {
+          duration: 4,
+          stagger: 0.3,
+          drawSVG: '0% 100%',
+          ease: 'none',
+        },
+        label
+      );
+    }, svgRef);
+
+    return () => ctx.revert();
+  }, [label, parentTimeline]);
 
   return (
     <svg

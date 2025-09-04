@@ -9,9 +9,9 @@ function EmailField({ onChange }: Props) {
   };
 
   return (
-    <label htmlFor="email" className="border-b border-b-main-white w-83">
+    <label htmlFor="email" className="border-b border-b-main-white md:w-83 w-full">
       <input
-        className="w-83 h-8 text-main-white focus:outline-none"
+        className="h-8 text-main-white focus:outline-none"
         type="email"
         placeholder="Email"
         name="email"

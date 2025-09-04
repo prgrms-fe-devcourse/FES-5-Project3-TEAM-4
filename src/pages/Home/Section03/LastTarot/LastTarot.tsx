@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
 
 // import card1 from '@/assets/home/Three_of_Swords.webp';
@@ -28,7 +28,7 @@ function LastTarot({ ref: outerRef, register }: Props) {
   const card1Img = useFilterCardName('Three of Swords')[0].image_url;
   const card2Img = useFilterCardName('Two of Cups')[0].image_url;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       register((tl) => {
         parentTLRef.current = tl;
