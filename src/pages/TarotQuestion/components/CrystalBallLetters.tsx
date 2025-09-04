@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import sphereOverlay from '@/assets/Tarot/crystal_sphere_overlay.svg';
 import sphereMask from '@/assets/Tarot/crystal_sphere_mask.svg';
-import { type TopicKey } from '@/common/types/TarotTopics';
+import { type TopicKey } from '../types/TarotTopics';
 
 type Props = {
   selectedKey: TopicKey | null;
@@ -38,8 +38,9 @@ export default function CrystalBallLetters({
   const letters = useMemo(() => (selectedKey ? selectedKey.split('') : []), [selectedKey]);
 
   useEffect(() => {
-    if (!containerRef.current || !maskRef.current) return;
+    if (!maskRef.current || letters.length === 0) return;
 
+    const scopeEl = maskRef.current;
     const R = boxSize / 2 - rimPadding;
     const baseScaleByCount = (len: number) => (len <= 4 ? 1.1 : len >= 6 ? 0.9 : 1);
     const k = 1.0;
@@ -52,7 +53,8 @@ export default function CrystalBallLetters({
     };
 
     const ctx = gsap.context(() => {
-      const items = gsap.utils.toArray<HTMLSpanElement>('.letter-particle');
+      const items = Array.from(scopeEl.querySelectorAll<HTMLSpanElement>('.letter-particle'));
+      if (items.length === 0) return;
 
       const baseScaleMap = new WeakMap<HTMLSpanElement, number>();
       const curScaleMap = new WeakMap<HTMLSpanElement, number>();
@@ -154,8 +156,12 @@ export default function CrystalBallLetters({
       };
 
       gsap.ticker.add(ticker);
-      return () => gsap.ticker.remove(ticker);
-    }, containerRef);
+
+      return () => {
+        gsap.killTweensOf(items);
+        gsap.ticker.remove(ticker);
+      };
+    }, scopeEl);
 
     return () => ctx.revert();
   }, [letters, boxSize, rimPadding]);
