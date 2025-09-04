@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router';
 import { lazy } from 'react';
-import AuthLayout from '@/common/components/AuthLayout';
 import { FiFileText, FiHome, FiUsers } from 'react-icons/fi';
 import { TbCards } from 'react-icons/tb';
 
@@ -13,6 +12,7 @@ const Write = lazy(() => import('@/pages/Community/Write'));
 const Detail = lazy(() => import('@/pages/Community/Detail'));
 const Edit = lazy(() => import('@/pages/Community/Edit'));
 const Mypage = lazy(() => import('@/pages/Mypage'));
+const RequireAuth = lazy(() => import('@/common/components/RequireAuth'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -83,7 +83,11 @@ export const routes = createBrowserRouter([
       {
         path: 'mypage',
         handle: { label: 'Mypage', showInNav: true, icon: FiFileText },
-        Component: Mypage,
+        Component: () => (
+          <RequireAuth>
+            <Mypage />
+          </RequireAuth>
+        ),
         loader: async () => {
           // ex)
           // const { data } = await supabase.from("테이블명").select("*");
@@ -113,7 +117,6 @@ export const routes = createBrowserRouter([
 
       {
         path: 'auth',
-        Component: AuthLayout,
         children: [
           {
             path: 'login',

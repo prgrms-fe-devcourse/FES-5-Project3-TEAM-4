@@ -9,10 +9,11 @@ import { showAlert, showConfirmAlert } from '../utils/sweetalert';
 export default function Header() {
   const navList = extractNavItem(routes.routes);
 
-  const { userInfo, reset } = useAuth(
+  const { userId, reset, isReady } = useAuth(
     useShallow((state) => ({
-      userInfo: state.userInfo,
+      userId: state.userId,
       reset: state.reset,
+      isReady: state.isReady,
     }))
   );
 
@@ -82,21 +83,24 @@ export default function Header() {
         </Link>
 
         {/* TODO: auth 상태에 따라 로그인 /로그아웃 컴포넌트 연결 */}
-        {userInfo.userId === '' && (
-          <Link
-            to={'/auth/login'}
-            className="px-4 py-2 rounded-lg cursor-pointer bg-main-white/20 hover:bg-main-white/30 text-sm"
-          >
-            로그인
-          </Link>
-        )}
-        {userInfo.userId !== '' && (
-          <a
-            className="px-4 py-2 rounded-lg cursor-pointer bg-main-white/20 hover:bg-main-white/30 text-sm"
-            onClick={handleLogout}
-          >
-            로그아웃
-          </a>
+        {isReady ? (
+          userId ? (
+            <a
+              className="px-4 py-2 rounded-lg cursor-pointer bg-main-white/20 hover:bg-main-white/30 text-sm"
+              onClick={handleLogout}
+            >
+              로그아웃
+            </a>
+          ) : (
+            <Link
+              to={'/auth/login'}
+              className="px-4 py-2 rounded-lg cursor-pointer bg-main-white/20 hover:bg-main-white/30 text-sm"
+            >
+              로그인
+            </Link>
+          )
+        ) : (
+          ''
         )}
       </div>
     </header>

@@ -11,6 +11,8 @@ import { selectCommunityListByUserId } from '@/common/api/Community/community';
 
 import { useAuth } from '@/common/store/authStore';
 import Loading from '@/common/components/Loading';
+import { useShallow } from 'zustand/shallow';
+import { showAlert } from '@/common/utils/sweetalert';
 
 function Post() {
   const navigate = useNavigate();
@@ -19,25 +21,30 @@ function Post() {
   const [rows, setRows] = useState<CommunityRowUI[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const userInfo = useAuth((state) => state.userInfo);
+  const { userId, isReady } = useAuth(
+    useShallow((state) => ({ userId: state.userId, isReady: state.isReady }))
+  );
 
   useEffect(() => {
+    if (!isReady) return;
+    if (!userId) {
+      showAlert('error', '로그인 정보가 없습니다.', '다시 로그인을 시도 해주세요', () => {
+        navigate('/auth/login');
+      });
+      return;
+    }
     const fetchList = async () => {
       setLoading(true);
       try {
-        const { items, total } = await selectCommunityListByUserId(
-          userInfo.userId,
-          'created_at',
-          false
-        );
+        const { items, total } = await selectCommunityListByUserId(userId, 'created_at', false);
 
         let likedSet = new Set<string>();
-        if (userInfo && items.length) {
+        if (userId && items.length) {
           // 내가 좋아요한 community_id만 뽑기
           const { data: likedRows } = await supabase
             .from('likes')
             .select('community_id')
-            .eq('profile_id', userInfo.userId)
+            .eq('profile_id', userId)
             .in(
               'community_id',
               items.map((i) => i.id)
@@ -53,7 +60,7 @@ function Post() {
     };
 
     fetchList();
-  }, []);
+  }, [isReady]);
 
   const handleClickLike = async (communityId: string) => {
     const next = await toggleLike(communityId);

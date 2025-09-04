@@ -6,9 +6,9 @@ import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/shallow';
 
 function Management() {
-  const { userInfo, reset } = useAuth(
+  const { provider, reset } = useAuth(
     useShallow((state) => ({
-      userInfo: state.userInfo,
+      provider: state.provider,
       reset: state.reset,
     }))
   );
@@ -34,7 +34,7 @@ function Management() {
       <h1 className="text-main-white pt-14 text-2xl font-semibold">Management</h1>
       <div className="w-full lg:w-[490px] h-[60%] border border-main-black rounded-lg bg-[#151228]">
         <div className="flex flex-col items-center pt-10">
-          <NewPassword provider={userInfo.provider} />
+          <NewPassword provider={provider} />
           <div className="pt-10">
             <a href="" className="text-[#737373] text-[12px] underline" onClick={handleUserOut}>
               회원탈퇴

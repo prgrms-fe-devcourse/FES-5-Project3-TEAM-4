@@ -25,12 +25,16 @@ export async function login(email: string, password: string) {
   }
 }
 
-export async function loginWithOAuth(provider: Provider) {
+export async function loginWithOAuth(provider: Provider, from: string) {
   try {
+    const redirectUrl = new URL('/auth/callback', window.location.origin);
+    redirectUrl.searchParams.set('provider', provider);
+    redirectUrl.searchParams.set('from', from);
+
     await supabase.auth.signInWithOAuth({
       provider: provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?provider=${provider}`,
+        redirectTo: redirectUrl.toString(),
         scopes: 'openid email profile',
         // refresh token이 필요하면:
         queryParams: { access_type: 'offline', prompt: 'consent' },

@@ -1,12 +1,14 @@
+import { logout } from '@/common/api/auth/login';
 import { updateUser } from '@/common/api/auth/resetPassword';
 import AuthValidate from '@/common/components/AuthValidate';
 import PasswordField from '@/common/components/PasswordField';
+import { useAuth } from '@/common/store/authStore';
 import { showAlert } from '@/common/utils/sweetalert';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
 interface Props {
-  provider?: string;
+  provider?: 'email' | 'google' | 'github' | null;
 }
 
 function NewPassword({ provider }: Props) {
@@ -14,12 +16,20 @@ function NewPassword({ provider }: Props) {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [validateText, setValidateText] = useState('');
   const navigate = useNavigate();
+  const reset = useAuth((state) => state.reset);
 
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (password !== passwordConfirm) {
       setValidateText('비밀번호가 일치하지 않습니다.');
       return;
+    }
+    if (!provider) {
+      showAlert('error', '비밀번호 변경 실패!', '다시 로그인을 시도 해주세요', () => {
+        logout();
+        reset();
+        navigate('/auth/login');
+      });
     }
     const success = await updateUser(password);
 
@@ -36,9 +46,9 @@ function NewPassword({ provider }: Props) {
     }
   };
   return (
-    <form onSubmit={handleResetPassword}>
-      <div className="flex flex-col gap-5 mb-10">
-        <span className="text-main-white">새 비밀번호</span>
+    <form className="flex flex-col items-center w-83 gap-10" onSubmit={handleResetPassword}>
+      <p className="text-main-white text-xl">새 비밀번호</p>
+      <div className="flex flex-col items-center gap-5 mb-10 w-full">
         <PasswordField onChange={(password: string) => setPassword(password)} className="mb-4" />
         <PasswordField
           onChange={(password: string) => setPasswordConfirm(password)}
@@ -49,7 +59,7 @@ function NewPassword({ provider }: Props) {
       </div>
       <button
         type="submit"
-        className="text-center font-semibold w-83 h-8 text-main-white border rounded-2xl cursor-pointer text-l border-main-whit hover:text-main-black hover:bg-main-white"
+        className="text-center font-semibold md:w-83 w-full h-8 text-main-white border rounded-2xl cursor-pointer text-l border-main-whit hover:text-main-black hover:bg-main-white"
       >
         {provider === 'email' ? '비밀번호 변경하기' : '비밀번호 생성하기'}
       </button>
