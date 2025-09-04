@@ -99,7 +99,7 @@ function Home() {
         anticipatePin: 1,
         invalidateOnRefresh: true,
         animation: s2TLRef.current,
-        markers: true,
+        // markers: true,
       });
     }
     if (firstTarotRef.current && firstTarotTLRef.current) {
