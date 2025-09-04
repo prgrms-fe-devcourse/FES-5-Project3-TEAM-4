@@ -14,3 +14,10 @@ export type RouteWithHandler = RouteObject & {
   };
   children?: RouteWithHandler[];
 };
+
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Kakao: any;
+  }
+}
