@@ -4,23 +4,20 @@ import PasswordField from '@/common/components/PasswordField';
 import { useAuth } from '@/common/store/authStore';
 import { showAlert } from '@/common/utils/sweetalert';
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
-function LoginForm() {
+function LoginForm({ from }: { from: string }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const setUserInfo = useAuth((state) => state.setUserInfo);
+  const setProvider = useAuth((state) => state.setProvider);
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const from = (location.state as { from?: Location } | undefined)?.from ?? { pathname: '/' };
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const userInfo = await login(email, password);
 
     if (userInfo) {
-      setUserInfo({ userId: userInfo.id, provider: 'email' });
+      setProvider('email');
       showAlert('success', '로그인 성공', '환영합니다!', () => {
         navigate(from, { replace: true });
       });

@@ -1,33 +1,45 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { devtools } from 'zustand/middleware';
+import { type Session } from '@supabase/supabase-js'; // 이미 래핑해둔 supabase 클라이언트를 import 하세요.
 
-//UserInfo 타입 정의
-interface UserInfo {
-  userId: string;
-  provider: string;
-}
-
-//초기값 설정
-const USER_ID_INIT: UserInfo = {
-  userId: '',
-  provider: 'email',
-};
+type Provider = 'email' | 'google' | 'github';
 
 type AuthState = {
-  userInfo: UserInfo;
-  setUserInfo: (userInfo: UserInfo) => void;
+  isReady: boolean; // 초기 세션 로딩 완료 여부
+  userId: string | null;
+  provider: Provider | null;
+  session: Session | null;
+  setFromSession: (s: Session | null) => void;
+  setProvider: (provider: Provider | null) => void;
   reset: () => void;
 };
 
 export const useAuth = create<AuthState>()(
-  persist(
-    (set, _get, store) => ({
-      userInfo: USER_ID_INIT,
-      setUserInfo: (userInfo) => set({ userInfo }),
-      reset: () => set(store.getInitialState()),
-    }),
-    {
-      name: 'user-storage',
-    }
-  )
+  devtools((set) => ({
+    isReady: false,
+    userId: null,
+    provider: null,
+    session: null,
+    setFromSession: (session) => {
+      const user = session?.user ?? null;
+      set({
+        session,
+        userId: user?.id ?? null,
+        isReady: true,
+      });
+    },
+    setProvider: (provider: Provider) => {
+      const providerValue = provider ?? null;
+      set({
+        provider: providerValue,
+      });
+    },
+    reset: () =>
+      set({
+        isReady: true,
+        userId: null,
+        provider: null,
+        session: null,
+      }),
+  }))
 );

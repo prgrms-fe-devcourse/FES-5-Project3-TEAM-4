@@ -2,31 +2,44 @@ import NightStarBackGround from '@/pages/Home/components/NightStarBackGround';
 import RecordItem from './RecordItem';
 
 import type { Tables } from '@/common/api/supabase/database.types';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useAuth } from '@/common/store/authStore';
 import { useEffect, useState } from 'react';
 import { selectTarotRecordListByUserId } from '@/common/api/Tarot/tarot';
 import Loading from '@/common/components/Loading';
+import { useShallow } from 'zustand/shallow';
+import { showAlert } from '@/common/utils/sweetalert';
 
 type TarotListProps = Tables<'tarot'> & { record: Tables<'record'>[] };
 
 function Record() {
-  const userInfo = useAuth((state) => state.userInfo);
+  const { userId, isReady } = useAuth(
+    useShallow((state) => ({ userId: state.userId, isReady: state.isReady }))
+  );
   const [tarotRecordList, setTarotRecordList] = useState<TarotListProps[] | null>(null);
   const [hasList, setHasList] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [refetchFlag, setRefetchFlag] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
+    if (!isReady) return;
+    if (!userId) {
+      showAlert('error', '로그인 정보가 없습니다.', '다시 로그인을 시도 해주세요', () => {
+        navigate('/auth/login');
+      });
+      return;
+    }
     setIsLoading(true);
     const fetchData = async () => {
-      const listData = await selectTarotRecordListByUserId(userInfo.userId);
+      const listData = await selectTarotRecordListByUserId(userId);
       if (!listData || listData.length === 0) return;
       setHasList(true);
       setTarotRecordList(listData);
     };
     fetchData();
     setIsLoading(false);
-  }, [refetchFlag]);
+  }, [refetchFlag, isReady]);
 
   const onUpdate = () => {
     setRefetchFlag((prev) => !prev);

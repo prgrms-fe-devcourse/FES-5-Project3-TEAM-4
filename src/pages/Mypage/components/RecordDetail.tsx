@@ -34,7 +34,7 @@ function RecordDetail({ tarotId, contents, type, onClose }: Props) {
   const [tarotInfoList, setTarotInfoList] = useState<TarotInfoListProps[] | null>(null);
   const [recordText, setRecordText] = useState(contents ?? '');
   const [mode, setMode] = useState<'init' | 'edit'>('init');
-  const userInfo = useAuth((state) => state.userInfo);
+  const userId = useAuth((state) => state.userId);
 
   //책 펼치는 애니메이션 커스텀 훅
   useBookSpread({
@@ -65,7 +65,7 @@ function RecordDetail({ tarotId, contents, type, onClose }: Props) {
       });
     } else {
       showConfirmAlert('기록을 저장하시겠습니까?', '', async () => {
-        const res = await insertRecord(tarotId, userInfo.userId, recordText);
+        const res = await insertRecord(tarotId, userId!, recordText);
         if (res.ok) {
           setMode('edit');
           showAlert('success', '저장되었습니다!', '');

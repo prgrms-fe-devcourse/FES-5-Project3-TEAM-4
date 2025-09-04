@@ -1,9 +1,9 @@
 import { loginWithOAuth } from '@/common/api/auth/login';
 import type { Provider } from '@supabase/supabase-js';
 
-function OAuthButton() {
+function OAuthButton({ from }: { from: string }) {
   const handleOAuthLogin = (provider: Provider) => {
-    loginWithOAuth(provider);
+    loginWithOAuth(provider, from);
   };
   const button =
     'flex gap-2 justify-center items-center w-[90%] md:w-83 h-8 text-sm rounded-2xl cursor-pointer';

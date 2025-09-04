@@ -4,13 +4,13 @@ import NewPassword from './components/NewPassword';
 import { useAuth } from '@/common/store/authStore';
 
 function PasswordReset() {
-  const userInfo = useAuth((state) => state.userInfo);
+  const provider = useAuth((state) => state.provider);
 
   return (
     <Bg className="flex justify-center items-center">
       <AuthForm className="gap-15">
         <h2 className="pt-9 text-main-white text-2xl font-bold">New Password</h2>
-        <NewPassword provider={userInfo.provider} />
+        <NewPassword provider={provider} />
       </AuthForm>
     </Bg>
   );
