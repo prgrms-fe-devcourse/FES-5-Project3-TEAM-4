@@ -16,8 +16,7 @@ function Record() {
   const { userId, isReady } = useAuth(
     useShallow((state) => ({ userId: state.userId, isReady: state.isReady }))
   );
-  const [tarotRecordList, setTarotRecordList] = useState<TarotListProps[] | null>(null);
-  const [hasList, setHasList] = useState(false);
+  const [tarotRecordList, setTarotRecordList] = useState<TarotListProps[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refetchFlag, setRefetchFlag] = useState(false);
   const navigate = useNavigate();
@@ -30,21 +29,25 @@ function Record() {
       });
       return;
     }
-    setIsLoading(true);
     const fetchData = async () => {
-      const listData = await selectTarotRecordListByUserId(userId);
-      if (!listData || listData.length === 0) return;
-      setHasList(true);
-      setTarotRecordList(listData);
+      try {
+        setIsLoading(true);
+        const listData = await selectTarotRecordListByUserId(userId);
+        setTarotRecordList(listData ?? []);
+      } catch (error: any) {
+        showAlert('error', '타로 기록을 가져오는데 실패하였습니다.', error?.message ?? '');
+      } finally {
+        setIsLoading(false);
+      }
     };
+
     fetchData();
-    setIsLoading(false);
   }, [refetchFlag, isReady]);
 
   const onUpdate = () => {
     setRefetchFlag((prev) => !prev);
   };
-
+  if (!isReady) return <Loading />;
   return (
     <section className="w-full lg:w-[750px] h-[90vh] lg:h-[85vh] flex flex-col gap-5 xl:pt-10 md:pt-5 md:mb-10">
       <h1 className="text-main-white xl:pt-14 md:pt-4 text-2xl font-semibold">Record</h1>
@@ -69,7 +72,7 @@ function Record() {
 
             {isLoading ? (
               <Loading mode="contents" />
-            ) : hasList ? (
+            ) : tarotRecordList.length > 0 ? (
               <ul className="pt-4 overflow-auto h-[40vh] scrollbar-thin scrollbar-thumb-amber-200 scrollbar-track-transparent">
                 {tarotRecordList!.map((tarotRecordData) => (
                   <RecordItem
@@ -82,20 +85,22 @@ function Record() {
                 ))}
               </ul>
             ) : (
-              <div className="text-main-white h-[40vh] flex flex-col items-center justify-center gap-4 font-semibold rounded-2xl bg-white/5 shadow-[0_4px_50px_5px_rgba(0,0,0,0.20)] backdrop-blur-[30px]">
+              <div className="text-main-white h-[40vh] flex items-center justify-center gap-6 font-semibold rounded-2xl bg-white/5 shadow-[0_4px_50px_5px_rgba(0,0,0,0.20)] backdrop-blur-[30px]">
                 <img
-                  className="w-[48px]"
-                  src="/icons/stargroup.svg"
-                  alt="별무리 이미지"
+                  className="w-[180px]"
+                  src="/images/threeCard.webp"
+                  alt="카드 뒷면 세장 이미지"
                   loading="lazy"
                 />
-                <p>기록할 수 있는 기억이 아직 없어요</p>
-                <Link
-                  className="border border-white rounded-2xl p-1 hover:bg-main-white hover:text-main-black"
-                  to={'/taro'}
-                >
-                  타로 보기
-                </Link>
+                <div className="flex flex-col gap-5">
+                  <p>기록할 수 있는 기억이 아직 없어요</p>
+                  <Link
+                    className="w-full text-center border border-white rounded-2xl p-3 hover:bg-main-white hover:text-main-black"
+                    to={'/taro'}
+                  >
+                    타로 보기
+                  </Link>
+                </div>
               </div>
             )}
           </div>
