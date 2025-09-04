@@ -9,28 +9,28 @@ const navList = [
 
 function Sidebar() {
   return (
-    <section className="xl:pt-10 md:pt-4">
+    <section className="xl:pt-10 pt-4">
       <h2 className="a11y">sidebar</h2>
-      <div className="md:w-full md:h-[200px] md:gap-4 lg:gap-14 lg:w-[220px] xl:w-[280px] lg:h-[85vh] rounded-xl flex flex-col bg-[#151228]">
+      <div className="md:w-full lg:w-[220px] xl:w-[280px] md:h-[200px] md:gap-4 lg:gap-14 lg:h-[80vh] rounded-xl flex flex-col bg-[#151228]">
         <div className="flex pt-8 xl:ml-4 items-center gap-7">
           <img src="/icons/profile.svg" alt="프로필 이미지" />
-          <p className="text-main-white text-[28px] font-bold">MYPAGE</p>
+          <p className="text-main-white xl:text-2xl text-xl font-bold">MYPAGE</p>
         </div>
-        <ul className="flex lg:flex-col lg:gap-5 md:gap-2">
+        <ul className="flex md:flex-nowrap flex-wrap justify-between lg:flex-col lg:gap-5 gap-2">
           {navList.map(({ to, label, imageUrl }) => (
             <li key={to}>
               <NavLink
                 to={to}
                 className={({ isActive }) =>
                   [
-                    'flex lg:w-full md:w-[180px] md:border lg:border-none h-[48px] items-center gap-4  rounded-xl',
+                    'flex lg:w-full w-[180px] border lg:border-none h-[48px] items-center gap-4 rounded-xl',
                     'hover:bg-[#0E0724] hover:scale-110 hover:border border-main-white',
                     isActive && 'bg-linear-to-r from-[#0E0724] to-[#EB3678]',
                   ].join(' ')
                 }
               >
                 <img className="ml-5" src={imageUrl} alt={`${label} 이미지`} />
-                <span className="text-main-white text-[20px]">{label}</span>
+                <span className="text-main-white lg:text-xl text-sm">{label}</span>
               </NavLink>
             </li>
           ))}

@@ -7,9 +7,10 @@ interface Props {
   tarotId: string;
   createdAt: string | null;
   recordData: Tables<'record'>[];
+  onUpdate: () => void;
 }
 
-function RecordItem({ tarotId, createdAt, recordData }: Props) {
+function RecordItem({ tarotId, createdAt, recordData, onUpdate }: Props) {
   const [popOpen, setPopOpen] = useState(false);
 
   const handlePopup = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -32,11 +33,20 @@ function RecordItem({ tarotId, createdAt, recordData }: Props) {
         </a>
       </li>
       {popOpen && (
-        <NightStarPopup onClose={() => setPopOpen((prev) => !prev)}>
+        <NightStarPopup
+          onClose={() => {
+            setPopOpen((prev) => !prev);
+            onUpdate();
+          }}
+        >
           <RecordDetail
             tarotId={tarotId}
             contents={recordData.length > 0 ? recordData[0].contents : ''}
             type="write"
+            onClose={() => {
+              setPopOpen((prev) => !prev);
+              onUpdate();
+            }}
           />
         </NightStarPopup>
       )}

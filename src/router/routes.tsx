@@ -3,9 +3,6 @@ import { lazy } from 'react';
 import AuthLayout from '@/common/components/AuthLayout';
 import { FiFileText, FiHome, FiUsers } from 'react-icons/fi';
 import { TbCards } from 'react-icons/tb';
-import { recordLoader } from '@/pages/Mypage/loader/recordLoader';
-import { postLoader } from '@/pages/Mypage/loader/postLoader';
-import { likeLoader } from '@/pages/Mypage/loader/likeLoader';
 
 const Root = lazy(() => import('@/pages'));
 const Home = lazy(() => import('@/pages/Home'));
@@ -90,17 +87,14 @@ export const routes = createBrowserRouter([
           {
             path: 'post',
             Component: Post,
-            loader: postLoader,
           },
           {
             path: 'likes',
             Component: Likes,
-            loader: likeLoader,
           },
           {
             path: 'record',
             Component: Record,
-            loader: recordLoader,
           },
         ],
       },
