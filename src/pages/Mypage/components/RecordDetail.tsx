@@ -23,11 +23,12 @@ interface Props {
   tarotId: string;
   contents?: string | null;
   type: 'write' | 'read' | 'result';
+  onClose?: () => void;
 }
 
 type TarotInfoListProps = Tables<'tarot'> & { tarot_info: Tables<'tarot_info'>[] };
 
-function RecordDetail({ tarotId, contents, type }: Props) {
+function RecordDetail({ tarotId, contents, type, onClose }: Props) {
   const pagesRef = useRef<HTMLDivElement | null>(null);
   const coverRef = useRef<HTMLDivElement | null>(null);
   const [tarotInfoList, setTarotInfoList] = useState<TarotInfoListProps[] | null>(null);
@@ -49,7 +50,7 @@ function RecordDetail({ tarotId, contents, type }: Props) {
       setTarotInfoList(tarotInfoList);
     };
     selectTarotInfo();
-    if (contents) setMode('edit');
+    if (recordText !== '') setMode('edit');
   }, []);
 
   const handleSave = async () => {
@@ -80,8 +81,10 @@ function RecordDetail({ tarotId, contents, type }: Props) {
       showConfirmAlert('기록을 삭제하시겠습니까?', '', async () => {
         const res = await deleteRecord(recordId);
         if (res.ok) {
-          showAlert('success', '삭제되었습니다!', '');
-          setMode('init');
+          showAlert('success', '삭제되었습니다!', '', () => {
+            setMode('init');
+            if (onClose) onClose();
+          });
         } else showAlert('error', '삭제 실패', '');
       });
     }
@@ -125,7 +128,7 @@ function RecordDetail({ tarotId, contents, type }: Props) {
                         createdAt={tarotInfoList[0].created_at}
                         question={tarotInfoList[0].question}
                         onTextChange={(recordText: string) => setRecordText(recordText)}
-                        contents={contents ?? ''}
+                        contents={recordText ?? ''}
                         type={type}
                       />
                     )}
