@@ -1,5 +1,5 @@
 import CrystalBallLetters from './CrystalBallLetters';
-import { LABEL_TO_KEY, type TopicLabel, type TopicKey } from '@/common/types/TarotTopics';
+import { LABEL_TO_KEY, type TopicLabel, type TopicKey } from '../types/TarotTopics';
 
 type Props = {
   selectedTopic: TopicLabel | null;

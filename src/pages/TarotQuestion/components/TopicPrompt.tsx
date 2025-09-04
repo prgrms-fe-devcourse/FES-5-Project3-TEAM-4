@@ -6,7 +6,7 @@ import StudyIcon from '@/assets/Tarot/icons/study.svg';
 import MoneyIcon from '@/assets/Tarot/icons/money.svg';
 import HealthIcon from '@/assets/Tarot/icons/health.svg';
 import QuestionIcon from '@/assets/Tarot/icons/question.svg';
-import { TOPIC_LABEL, type TopicLabel } from '@/common/types/TarotTopics';
+import { TOPIC_LABEL, type TopicLabel } from '../types/TarotTopics';
 
 type TopicPromptProps = {
   selectedTopic: TopicLabel | null;
@@ -57,7 +57,7 @@ export default function TopicPrompt({ selectedTopic, onSubmit, presetValue }: To
         className={[
           'flex items-center gap-3 md:gap-4 rounded-full border w-full',
           'px-4 md:px-6 lg:px-8 md:py-1',
-          'max-w-[min(92vw,560px)] md:max-w-[min(92vw,640px)] lg:max-w-[min(92vw,720px)]',
+          'max-w-[min(92vw,560px)] md:max-w-[min(92vw,640px)] lg:max-w-[min(92vw,720px)] mx-auto',
           'border-main-white',
           error ? 'ring-1 ring-red-400/50 border-red-400' : '',
         ].join(' ')}

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { TopicLabel } from '@/common/types/TarotTopics';
+import type { TopicLabel } from '@/pages/TarotQuestion/types/TarotTopics';
 
 export type Slot = 'past' | 'present' | 'future';
 export const SLOTS: readonly Slot[] = ['past', 'present', 'future'] as const;

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { gsap } from 'gsap';
-import { type TopicLabel } from '@/common/types/TarotTopics';
+import { type TopicLabel } from '../types/TarotTopics';
 
 type Props = {
   selectedTopic: TopicLabel | null;
