@@ -1,7 +1,20 @@
+import { useNavigate, useLocation } from 'react-router-dom';
 import ShuffleCards from './components/ShuffleCards';
 import StopShuffleBtn from './components/StopShuffleBtn';
 
-export default function TarotShuffle() {
+type Props = {
+  onProceed?: () => void;
+};
+
+export default function TarotShuffle({ onProceed }: Props) {
+  const navigate = useNavigate();
+  const { state } = useLocation() as { state?: { question?: string; topic?: string } };
+
+  const goNext = () => {
+    if (onProceed) onProceed();
+    else navigate('/tarot/spread', { state });
+  };
+
   return (
     <div
       className="flex flex-col w-full min-h-screen items-center text-main-white bg-[url('/velvet.png')]"

@@ -5,8 +5,8 @@ import Bg from '@/common/components/Bg';
 
 function Mypage() {
   return (
-    <Bg className="flex justify-center items-center">
-      <article className="w-[1200px] h-[100vh] flex justify-between items-start pt-17">
+    <Bg className="flex justify-center items-center overflow-y-auto">
+      <article className="w-[95%] lg:w-[1200px] flex flex-col lg:flex-row lg:gap-10 xl:justify-between xl:items-start  md:items-center md:justify-center pt-17">
         <Sidebar />
         <Outlet></Outlet>
       </article>

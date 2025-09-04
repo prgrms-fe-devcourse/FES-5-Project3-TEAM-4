@@ -20,7 +20,7 @@ type Params = {
   lockedProp: boolean;
   isFaceUp: boolean;
   hoverBackScale: number;
-  onDragStart?: (id: number | string) => void;
+  onDragStart?: (id: number | string, payload: DragEndPayload) => void;
   onDragEnd?: (id: number | string, payload: DragEndPayload) => void;
   rootRef: DivRef;
   cardRef: DivRef;
@@ -88,11 +88,16 @@ export default function useCardDrag({
   const lock = useCallback(() => {
     isLockedRef.current = true;
     if (rootRef.current) gsap.set(rootRef.current, { zIndex: 60 });
-    const w = rootRef.current?.dataset.fitw;
+    const el = rootRef.current;
+    const w = el?.dataset.fitw;
+    const r = el?.dataset.fitr ? Number(el.dataset.fitr) : 0.9;
     if (w) {
       const cw = Number(w);
-      if (!Number.isNaN(cw)) applyFitScale(cw, 0.9, 320);
-      delete rootRef.current!.dataset.fitw;
+      if (!Number.isNaN(cw)) applyFitScale(cw, Number.isFinite(r) ? r : 0.9, 320);
+      if (el) {
+        delete el.dataset.fitw;
+        delete el.dataset.fitr;
+      }
     }
   }, [rootRef, applyFitScale]);
 
@@ -108,31 +113,38 @@ export default function useCardDrag({
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
       const root = rootRef.current!;
-      const rect = cardRef.current!.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
+      const cardEl = cardRef.current!;
 
       const tx = safeGetNumber(root, 'x', transRef.current.x);
       const ty = safeGetNumber(root, 'y', transRef.current.y);
 
-      const dx = e.clientX - cx;
-      const dy = e.clientY - cy;
-
-      const nx = tx + dx;
-      const ny = ty + dy;
-
       preAngleRef.current = safeGetNumber(root, 'rotationZ', 0);
       hadPreAngleRef.current = true;
 
-      transRef.current = { x: nx, y: ny };
-      startTransRef.current = { x: nx, y: ny };
-      startPosRef.current = { x: e.clientX, y: e.clientY };
+      gsap.set(root, { rotationZ: 0, x: tx, y: ty, zIndex: 60 });
+      gsap.set(cardEl, { rotateX: 0 });
+      gsap.to(cardEl, { scale: hoverBackScale, duration: 0.1 });
 
-      gsap.set(root, { x: nx, y: ny, zIndex: 60 });
-      gsap.to(root, { rotationZ: 0, duration: 0.12, ease: 'power2.out' });
-      gsap.to(cardRef.current, { scale: hoverBackScale, duration: 0.1 });
+      requestAnimationFrame(() => {
+        const rectNow = cardEl.getBoundingClientRect();
+        const cx = rectNow.left + rectNow.width / 2;
+        const cy = rectNow.top + rectNow.height / 2;
 
-      onDragStart?.(id);
+        const nx = tx + (e.clientX - cx);
+        const ny = ty + (e.clientY - cy);
+
+        transRef.current = { x: nx, y: ny };
+        startTransRef.current = { x: nx, y: ny };
+        startPosRef.current = { x: e.clientX, y: e.clientY };
+        gsap.set(root, { x: nx, y: ny });
+
+        onDragStart?.(id, {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          translate: { ...transRef.current },
+          cardRect: rectNow,
+        });
+      });
     },
     [cardRef, rootRef, hoverBackScale, onDragStart, id, isFaceUp]
   );
