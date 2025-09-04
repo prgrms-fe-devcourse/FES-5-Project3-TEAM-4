@@ -1,4 +1,3 @@
-// src/pages/Tarot/components/Spread.tsx
 import { useRef, useCallback, useEffect, useState, useMemo, type RefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
@@ -341,6 +340,8 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
         ref?.flip(true);
         const root = ref?.rootEl as HTMLElement | null;
         if (root) root.dataset.fitr = '0.8';
+        const wrap = wrapsRef.current[deckIdx];
+        if (wrap) gsap.set(wrap, { zIndex: mi + 1 });
       });
     });
 
@@ -404,6 +405,8 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       setTimeout(() => {
         ref?.flip(true);
       }, order * 150);
+      const wrap = wrapsRef.current[deckIdx!];
+      if (wrap) gsap.set(wrap, { zIndex: si + 1 });
     });
   }, [clarifyMode, slotRefs?.length, orderedDeck, filledBySlot, slots, setCard]);
 
@@ -513,6 +516,9 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
 
       onSnap?.(hit, _id);
       scheduleRealign(idx, hit!, 220);
+
+      const wrap = wrapsRef.current[idx];
+      if (wrap) gsap.set(wrap, { zIndex: hit! + 1 });
     };
 
   function LoadingOverlay({ message }: { message: string }) {
