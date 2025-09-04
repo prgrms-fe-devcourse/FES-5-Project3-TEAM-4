@@ -20,9 +20,14 @@ export default function TarotQuestion({
   selectedTopicInitial = null,
 }: Props) {
   const navigate = useNavigate();
-  const [selectedTopic, setSelectedTopic] = useState<TopicLabel | null>(selectedTopicInitial);
+  const topicInStore = tarotStore((s) => s.topic);
+  const setQuestion = tarotStore((s) => s.setQuestion);
+  const setTopic = tarotStore((s) => s.setTopic);
+
+  const [selectedTopic, setSelectedTopic] = useState<TopicLabel | null>(
+    selectedTopicInitial ?? topicInStore ?? null
+  );
   const [pickedQuestion, setPickedQuestion] = useState<string>(presetQuestion);
-  const setQuestion = tarotStore((state) => state.setQuestion);
 
   return (
     <div className="mx-auto w-full md:max-w-screen-md lg:max-w-screen-lg px-4 md:px-5 lg:px-6 space-y-3 lg:space-y-4 pb-2 md:pb-3 lg:pb-4">
@@ -45,7 +50,11 @@ export default function TarotQuestion({
               key={t}
               topic={t}
               selected={selectedTopic === t}
-              onSelect={(topic) => setSelectedTopic((prev) => (prev === topic ? null : topic))}
+              onSelect={(topic) => {
+                const next = selectedTopic === topic ? null : topic;
+                setSelectedTopic(next);
+                setTopic(next);
+              }}
             />
           ))}
         </div>
@@ -57,10 +66,13 @@ export default function TarotQuestion({
           presetValue={pickedQuestion}
           onSubmit={(val, topic) => {
             setQuestion(val);
+            setTopic(topic ?? selectedTopic ?? null);
             if (onSubmitQuestion) {
-              onSubmitQuestion(val, topic);
+              onSubmitQuestion(val, topic ?? selectedTopic ?? null);
             } else {
-              navigate('/tarot/shuffle', { state: { question: val, topic } });
+              navigate('/tarot/shuffle', {
+                state: { question: val, topic: topic ?? selectedTopic ?? null },
+              });
             }
           }}
         />

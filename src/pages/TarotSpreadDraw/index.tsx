@@ -95,11 +95,11 @@ export default function TarotSpreadDraw() {
   return (
     <div className="min-h-screen text-main-white">
       <div className="mx-auto w-full max-w-6xl px-6 py-10 space-y-10">
-        <section className="relative">
+        <section className="relative z-20">
           <TarotSpread slotRefs={slotRefs} onSnap={handleSnap} canAccept={canAccept} />
         </section>
 
-        <section className="flex items-center justify-center gap-6 md:gap-10">
+        <section className="relative z-10 flex items-center justify-center gap-6 md:gap-10">
           {SLOT_LABELS.map((label, i) => {
             const showSub = clarifyMode && requireClarifyByIndex[i];
             return (

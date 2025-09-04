@@ -11,7 +11,6 @@ import {
   buildMainCardsFromStore,
 } from '@/pages/Tarot/utils/buildCardsFromStore';
 import Loading from '@/common/components/Loading';
-import { createPortal } from 'react-dom';
 
 type Props = {
   deck: TarotCardModel[];
@@ -47,32 +46,21 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
   const savedMainOnceRef = useRef(false);
   const expectFlipIdsRef = useRef<Set<string | number>>(new Set());
   const navigatingRef = useRef(false);
+  const navigateTimerRef = useRef<number | null>(null);
   const restoredOnceRef = useRef(false);
   const phaseRef = useRef<'main' | 'sub' | null>(null);
 
   const [loading, setLoading] = useState(false);
-  const [loadingMsg, setLoadingMsg] = useState('Loading...');
-  const loadingDelayTimerRef = useRef<number | null>(null);
-  const fetchInFlightRef = useRef(false);
+  const [loadingMsg, setLoadingMsg] = useState('타로 결과 분석 중...');
 
-  const navigatedRef = useRef(false);
   const navigate = useNavigate();
-
-  const goResults = useCallback(() => {
-    if (navigatedRef.current) return;
-    navigatedRef.current = true;
-    setStage('results');
-    navigate('/tarot/result', { replace: true });
-  }, [navigate, setStage]);
 
   useEffect(() => {
     return () => {
-      if (loadingDelayTimerRef.current) {
-        clearTimeout(loadingDelayTimerRef.current);
-        loadingDelayTimerRef.current = null;
+      if (navigateTimerRef.current) {
+        clearTimeout(navigateTimerRef.current);
+        navigateTimerRef.current = null;
       }
-      setLoading(false);
-      fetchInFlightRef.current = false;
     };
   }, []);
 
@@ -125,7 +113,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
         onComplete: () => {
           const renderedWidth = (root as HTMLElement).getBoundingClientRect().width;
           (root as HTMLElement).style.width = `${Math.round(renderedWidth)}px`;
-          gsap.set(root, { scale: 1 });
+          gsap.set(root, { scale: 1, force3D: false, z: 0.01 });
           gsap.to(root, {
             width: desired,
             duration: Math.max(0.18, (dur / 1000) * 0.4),
@@ -459,18 +447,13 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       scheduleRealign(idx, hit!, 220);
     };
 
-  function LoadingOverlay({ message }: { message: string }) {
-    return createPortal(
-      <div className="fixed inset-0 z-[2147483647]">
-        <Loading message={message} mode="default" />
-      </div>,
-      document.body
-    );
-  }
-
   return (
     <>
-      {loading && <LoadingOverlay message={loadingMsg} />}
+      {loading && (
+        <div className="fixed inset-0 z-[9999]">
+          <Loading message={loadingMsg} mode="default" />
+        </div>
+      )}
 
       {orderedDeck.map((c, i) => {
         const snapped = slotOfCard[i] != null;
@@ -509,55 +492,30 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                       mainSentOnceRef.current = true;
                       const cards = buildMainCardsFromStore();
                       const msg = (question || '').trim() || '가까운 시일 내 흐름의 포인트는?';
-                      fetchInFlightRef.current = true;
-                      if (loadingDelayTimerRef.current) clearTimeout(loadingDelayTimerRef.current);
-                      loadingDelayTimerRef.current = window.setTimeout(() => {
-                        if (fetchInFlightRef.current) {
-                          setLoadingMsg('리딩 생성 중…');
-                          setLoading(true);
-                        }
-                        loadingDelayTimerRef.current = null;
-                      }, 3000);
-                      try {
-                        const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
-                        console.log('[Gemini][main]', { topic, msg, cards, data });
-                      } finally {
-                        fetchInFlightRef.current = false;
-                        if (loadingDelayTimerRef.current) {
-                          clearTimeout(loadingDelayTimerRef.current);
-                          loadingDelayTimerRef.current = null;
-                        }
-                        setLoading(false);
-                        if (!clarifyMode) goResults();
-                      }
+                      setLoadingMsg('리딩 생성 중…');
+                      setLoading(true);
+                      const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
+                      console.log('[Gemini][main]', { topic, msg, cards, data });
+                      setLoading(false);
                     }
 
                     if (phaseRef.current === 'sub' && !subSentOnceRef.current) {
                       subSentOnceRef.current = true;
                       const cards = buildCardsWithSubsFromStore();
                       const msg = (question || '').trim() || '보조 카드까지 포함한 상세 리딩';
-                      fetchInFlightRef.current = true;
-                      if (loadingDelayTimerRef.current) clearTimeout(loadingDelayTimerRef.current);
-                      loadingDelayTimerRef.current = window.setTimeout(() => {
-                        if (fetchInFlightRef.current) {
-                          setLoadingMsg('보조 리딩 생성 중…');
-                          setLoading(true);
-                        }
-                        loadingDelayTimerRef.current = null;
-                      }, 3000);
-                      try {
-                        const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
-                        console.log('[Gemini][sub]', { topic, msg, cards, data });
-                      } finally {
-                        fetchInFlightRef.current = false;
-                        if (loadingDelayTimerRef.current) {
-                          clearTimeout(loadingDelayTimerRef.current);
-                          loadingDelayTimerRef.current = null;
-                        }
-                        setLoading(false);
-                        goResults();
-                      }
+                      setLoadingMsg('보조 리딩 생성 중…');
+                      setLoading(true);
+                      const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
+                      console.log('[Gemini][sub]', { topic, msg, cards, data });
+                      setLoading(false);
                     }
+
+                    if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
+                    navigateTimerRef.current = window.setTimeout(() => {
+                      setStage('results');
+                      navigate('/tarot/result', { replace: true });
+                      navigateTimerRef.current = null;
+                    }, 3000);
                   }
                 }}
                 onDragStart={(_, payload) => {
