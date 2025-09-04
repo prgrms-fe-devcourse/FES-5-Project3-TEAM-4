@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Tables } from '../api/supabase/database.types';
 import { useShallow } from 'zustand/shallow';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import CardBackUrl from '@/assets/Tarot/tarot_back.svg?url';
 
 type CardsState = {
   cardList: Tables<'card'>[];
@@ -28,13 +29,23 @@ export const useCardInfo = create<CardsState>()(
 );
 
 export const useFilterArcana = (arcana: string | null) => {
-  if (!arcana)
-    return [{ name: '이미지 없음', arcana: '이미지 없음', image_url: '/images/Temperance.webp' }];
-  return useCardInfo(useShallow((card) => card.cardList.filter((c) => c.arcana === arcana)));
+  if (!arcana) return [{ name: '이미지 없음', arcana: '이미지 없음', image_url: CardBackUrl }];
+  const cardInfo = useCardInfo(
+    useShallow((card) => card.cardList.filter((c) => c.arcana === arcana))
+  );
+  if (cardInfo.length === 0) {
+    return [{ name: '이미지 없음', arcana: '이미지 없음', image_url: CardBackUrl }];
+  }
+  return cardInfo;
 };
 
 export const useFilterCardName = (cardName: string | null) => {
-  if (!cardName)
-    return [{ name: '이미지 없음', arcana: '이미지 없음', image_url: '/images/Temperance.webp' }];
-  return useCardInfo(useShallow((card) => card.cardList.filter((c) => c.name === cardName)));
+  if (!cardName) return [{ name: '이미지 없음', arcana: '이미지 없음', image_url: CardBackUrl }];
+  const cardInfo = useCardInfo(
+    useShallow((card) => card.cardList.filter((c) => c.name === cardName))
+  );
+  if (cardInfo.length === 0) {
+    return [{ name: '이미지 없음', arcana: '이미지 없음', image_url: CardBackUrl }];
+  }
+  return cardInfo;
 };
