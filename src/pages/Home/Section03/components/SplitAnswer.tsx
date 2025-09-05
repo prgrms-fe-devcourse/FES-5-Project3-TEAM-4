@@ -27,7 +27,7 @@ function SplitAnswer({ parentTimeline, startLabel, endLabel, children, className
           letterSpacing: '0rem',
           y: 0,
           ease: 'power2.out',
-          duration: 4,
+          duration: 2,
           overwrite: 'auto',
         },
         startLabel

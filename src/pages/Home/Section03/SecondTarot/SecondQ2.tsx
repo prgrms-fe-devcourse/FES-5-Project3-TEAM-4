@@ -23,8 +23,8 @@ function SecondQ2({ parentTimeline, label }: Props) {
         paths,
         { drawSVG: '0% 0%' },
         {
-          duration: 4,
-          stagger: 0.3,
+          duration: 2,
+          // stagger: 0.3,
           drawSVG: '0% 100%',
           ease: 'none',
         },

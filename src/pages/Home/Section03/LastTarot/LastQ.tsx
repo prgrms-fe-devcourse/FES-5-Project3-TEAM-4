@@ -23,8 +23,8 @@ function LastQ({ parentTimeline, label }: Props) {
         paths,
         { drawSVG: '0% 0%' },
         {
-          duration: 4,
-          stagger: 0.5,
+          duration: 2,
+          // stagger: 0.5,
           drawSVG: '0% 100%',
           ease: 'none',
         },

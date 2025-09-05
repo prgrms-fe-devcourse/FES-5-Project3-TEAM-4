@@ -11,8 +11,10 @@ interface Props {
   parentTimeline: RefObject<gsap.core.Timeline | null>;
   startLabel?: string;
   endLabel?: string;
-  from?: { opacity: number; x: number | string; y: number | string };
+  from?: { opacity?: number; x: number | string; y: number | string };
+  fromDuration?: number;
   to?: { x: number | string; y: number | string }[];
+  toDuration?: number;
   curviness?: number;
   className?: string;
 }
@@ -22,7 +24,9 @@ function MainStar({
   startLabel,
   endLabel,
   from = { opacity: 1, x: 0, y: 0 },
+  fromDuration = 2,
   to = [{ x: 0, y: 0 }],
+  toDuration = 3,
   curviness = 0,
   className,
 }: Props) {
@@ -35,23 +39,25 @@ function MainStar({
     const ctx = gsap.context(() => {
       if (!parentTimeline.current) return;
 
-      parentTimeline.current.from(mainStarRef.current, { ...from, duration: 4 }, startLabel).to(
-        mainStarRef.current,
-        {
-          motionPath: {
-            path: [...to],
-            curviness: curviness,
-            autoRotate: true,
+      parentTimeline.current
+        .from(mainStarRef.current, { ...from, duration: fromDuration }, startLabel)
+        .to(
+          mainStarRef.current,
+          {
+            motionPath: {
+              path: [...to],
+              curviness: curviness,
+              autoRotate: true,
+            },
+            duration: toDuration,
+            ease: 'power2.in',
           },
-          duration: 5,
-          ease: 'power2.in',
-        },
-        endLabel
-      );
+          endLabel
+        );
     }, mainStarRef);
 
     return () => ctx.revert();
-  }, [parentTimeline, startLabel, from, to, curviness, endLabel]);
+  }, [parentTimeline, startLabel, from, to, curviness, endLabel, fromDuration, toDuration]);
 
   return (
     <div

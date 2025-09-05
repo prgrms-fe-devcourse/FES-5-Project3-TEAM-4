@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import SecondQ1 from './SecondQ1';
 import SecondQ2 from './SecondQ2';
 import MainStar from '../../components/MainStar';
-import CardSpin from '../components/CardSpin';
+import CardSpin from '../../components/CardSpin';
 import WheelOfFortune from './WheelOfFortune';
 import SplitAnswer from '../components/SplitAnswer';
 import { useFilterCardName } from '@/common/store/cardStore';
@@ -29,15 +29,15 @@ function SecondTarot({ ref: outerRef, register }: Props) {
       register((tl) => {
         parentTLRef.current = tl;
         tl.addLabel('startStar', 0)
-          .addLabel('secondQuestion1', 'startStar+=3')
-          .addLabel('secondQuestion2', 'secondQuestion1+=3')
-          .addLabel('spin', 'secondQuestion2+=6')
+          .addLabel('secondQuestion1', 'startStar+=1.5')
+          .addLabel('secondQuestion2', 'secondQuestion1+=0.5')
+          .addLabel('spin', 'secondQuestion2+=3')
           .addLabel('cardName', 'spin+=0.5')
-          .addLabel('textBox', 'cardName+=1')
+          .addLabel('textBox', 'cardName+=0.5')
           .from(textBoxRef.current, { opacity: 0, y: 100, duration: 1 }, 'textBox')
-          .addLabel('text1', 'textBox+=1')
-          .addLabel('text2', 'text1+=1')
-          .addLabel('endStar', 'text2+=4');
+          .addLabel('text1', 'textBox+=0.5')
+          .addLabel('text2', 'text1+=0.5')
+          .addLabel('endStar', 'text2+=1.5');
       });
     }, scopeRef);
 
@@ -47,7 +47,7 @@ function SecondTarot({ ref: outerRef, register }: Props) {
   return (
     <section
       ref={scopeRef}
-      className=" h-screen w-screen relative overflow-hidden flex flex-col justify-center items-center "
+      className="section h-screen w-screen relative overflow-hidden flex flex-col justify-center items-center "
     >
       <MainStar
         parentTimeline={parentTLRef}
@@ -56,9 +56,10 @@ function SecondTarot({ ref: outerRef, register }: Props) {
         to={[
           { x: '-5vw', y: '60vh' },
           { x: '-40vw', y: '10vh' },
-          { x: '-70vw', y: '70vh' },
-          { x: '-70vw', y: '95vh' },
+          { x: '-50vw', y: '70vh' },
+          // { x: '-70vw', y: '95vh' },
         ]}
+        toDuration={2}
         curviness={1.5}
         startLabel="startStar"
         endLabel="endStar"
