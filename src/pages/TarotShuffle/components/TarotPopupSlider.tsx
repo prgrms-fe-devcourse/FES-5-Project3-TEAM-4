@@ -154,7 +154,11 @@ function TarotPopupSlider({ tarotAnalysisData, tarotId, clickedNumber = 0 }: Pro
           disabled={index === cardListLength ? true : false}
         >
           <img
-            src={index === 3 ? '/icons/right_inactive_arrow.svg' : '/icons/right_active_arrow.svg'}
+            src={
+              index === cardListLength
+                ? '/icons/right_inactive_arrow.svg'
+                : '/icons/right_active_arrow.svg'
+            }
             alt="다음버튼"
           />
         </button>
