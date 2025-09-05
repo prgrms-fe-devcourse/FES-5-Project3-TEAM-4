@@ -7,7 +7,7 @@ import { formatDate } from '@/common/utils/format';
 import { useNavigate } from 'react-router';
 import { sanitizeFilename } from '@/common/api/supabase/storage';
 
-import { getAuthedUserOrThrow } from '@/common/api/auth/auth';
+import { getAuthedUser } from '@/common/api/auth/auth';
 import { listTarotImagesByUser } from '@/common/api/Tarot/tarotImage';
 import { uploadFilesToBucket } from '@/common/api/supabase/storage';
 import { createCommunity, updateCommunity } from '@/common/api/Community/community';
@@ -50,7 +50,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: PostEditorPr
       try {
         setTarotLoading(true);
         setTarotErr(null);
-        const user = await getAuthedUserOrThrow();
+        const user = await getAuthedUser();
         const rows = await listTarotImagesByUser(user.id);
         setTarotRows(rows ?? []);
       } catch (e) {
@@ -105,7 +105,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: PostEditorPr
 
     setIsSubmitting(true);
     try {
-      const user = await getAuthedUserOrThrow();
+      const user = await getAuthedUser();
 
       // 1) 새 파일 업로드
       const newUrls = await uploadFiles(user.id, newFiles);

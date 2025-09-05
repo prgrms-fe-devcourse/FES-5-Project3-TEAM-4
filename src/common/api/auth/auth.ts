@@ -1,6 +1,6 @@
 import supabase from '@/common/api/supabase/supabase';
 
-export async function getAuthedUserOrThrow() {
+export async function getAuthedUser() {
   const {
     data: { user },
     error,
