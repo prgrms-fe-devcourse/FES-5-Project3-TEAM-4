@@ -1,41 +1,32 @@
+import type { Tables } from '@/common/api/supabase/database.types';
+import type { UploadFile, PostEditorProps } from '@/common/types/community';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/common/components/Button';
-import supabase from '@/common/api/supabase/supabase';
 import { showAlert } from '@/common/utils/sweetalert';
 import { formatDate } from '@/common/utils/format';
-import type { Tables } from '@/common/api/supabase/database.types';
 import { useNavigate } from 'react-router';
+import { sanitizeFilename } from '@/common/api/supabase/storage';
 
-type UploadFile = { id: string; file: File };
+import { getAuthedUserOrThrow } from '@/common/api/auth/auth';
+import { listTarotImagesByUser } from '@/common/api/Tarot/tarotImage';
+import { uploadFilesToBucket } from '@/common/api/supabase/storage';
+import { createCommunity, updateCommunity } from '@/common/api/Community/community';
 
-type Props = {
-  mode: 'create' | 'edit';
-  initial?: Tables<'community'> | null; // edit일 때만
-  onSubmitDone: (savedId: string) => void;
-};
-
-const STORAGE_BUCKET = 'community-files';
-
-export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
+export default function PostEditor({ mode, initial, onSubmitDone }: PostEditorProps) {
   const nav = useNavigate();
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [title, setTitle] = useState(initial?.title ?? '');
   const [content, setContent] = useState(initial?.contents ?? '');
-
-  // 기존 업로드 된 파일, 새로 추가한 파일
+  const [newFiles, setNewFiles] = useState<UploadFile[]>([]);
   const [existingUrls, setExistingUrls] = useState<string[]>(
     (initial?.file_urls ?? []) as string[]
   );
-  const [newFiles, setNewFiles] = useState<UploadFile[]>([]);
-
-  // 타로
   const [open, setOpen] = useState(false);
   const [tarotLoading, setTarotLoading] = useState(false);
-  const [tarotRows, setTarotRows] = useState<Tables<'tarot'>[]>([]);
+  const [tarotRows, setTarotRows] = useState<Tables<'tarot_image'>[]>([]);
   const [tarotErr, setTarotErr] = useState<string | null>(null);
   const [selectedTarotId, setSelectedTarotId] = useState<string | null>(initial?.tarot_id ?? null);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openPicker = () => fileRef.current?.click();
@@ -43,7 +34,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
   const onPick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const picked = Array.from(e.target.files ?? []).map((f) => ({
       id: crypto.randomUUID(),
-      file: f,
+      file: new File([f], sanitizeFilename(f.name), { type: f.type }),
     }));
     setNewFiles((prev) => [...prev, ...picked]);
     if (fileRef.current) fileRef.current.value = '';
@@ -52,27 +43,16 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
   const removeNewFile = (id: string) => setNewFiles((p) => p.filter((f) => f.id !== id));
   const removeExistingUrl = (url: string) => setExistingUrls((p) => p.filter((u) => u !== url));
 
-  // 타로 리스트 모달 띄울 때 로딩
+  // 타로 이미지 목록 (tarot_image) – 모달 열릴 때만 로드
   useEffect(() => {
     if (!open) return;
     (async () => {
       try {
         setTarotLoading(true);
         setTarotErr(null);
-        const {
-          data: { user },
-          error: authErr,
-        } = await supabase.auth.getUser();
-        if (authErr) throw authErr;
-        if (!user) throw new Error('로그인이 필요합니다.');
-
-        const { data, error } = await supabase
-          .from('tarot')
-          .select('id, profile_id, created_at, result, topic, question')
-          .eq('profile_id', user.id)
-          .order('created_at', { ascending: false });
-        if (error) throw error;
-        setTarotRows(data ?? []);
+        const user = await getAuthedUserOrThrow();
+        const rows = await listTarotImagesByUser(user.id);
+        setTarotRows(rows ?? []);
       } catch (e) {
         setTarotErr(e instanceof Error ? e.message : '불러오기에 실패했어요.');
       } finally {
@@ -81,40 +61,39 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
     })();
   }, [open]);
 
-  // 타로 결과 이미지를 파일로 첨부
-  const attachFromResult = async (r: Tables<'tarot'>) => {
+  // 타로 이미지 한 건을 첨부 파일로 변환해서 추가
+  const attachFromResult = async (r: Tables<'tarot_image'>) => {
     try {
-      if (!r.result) {
+      if (!r.image_url) {
         showAlert('error', '이미지 주소가 없습니다.');
         return;
       }
-      const resp = await fetch(r.result);
+      const resp = await fetch(r.image_url);
       const blob = await resp.blob();
-      const ext = blob.type.split('/')[1] || 'png';
-      const safeDate = (r.created_at || '').replace(/[:\s]/g, '-');
-      const file = new File([blob], `tarot-${safeDate}.${ext}`, { type: blob.type || 'image/png' });
+      const ext = (blob.type?.split('/')[1] || 'png').toLowerCase();
+
+      const safeDate = (r.created_at || '').replace(/[:\s+]/g, '-');
+      const fname = sanitizeFilename(`tarot-${safeDate}.${ext}`);
+
+      const file = new File([blob], fname, { type: blob.type || 'image/png' });
       setNewFiles((prev) => [...prev, { id: crypto.randomUUID(), file }]);
-      setSelectedTarotId(r.id);
+
+      // 커뮤니티 글에는 tarot_id(FK -> tarot.id) 저장
+      setSelectedTarotId(r.tarot_id ?? null);
       setOpen(false);
     } catch {
       showAlert('error', '이미지를 첨부로 변환하는 데 실패했어요.');
     }
   };
 
-  // 업로드 → URL 만들기
+  // 업로드(버킷) → 공개 URL들 반환
   async function uploadFiles(userId: string, files: UploadFile[]): Promise<string[]> {
-    const urls = await Promise.all(
-      files.map(async ({ file }) => {
-        const path = `${userId}/${crypto.randomUUID()}-${encodeURIComponent(file.name)}`;
-        const { error: upErr } = await supabase.storage
-          .from(STORAGE_BUCKET)
-          .upload(path, file, { cacheControl: '3600', upsert: false });
-        if (upErr) return null;
-        const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-        return pub?.publicUrl ?? null;
-      })
+    const urls = await uploadFilesToBucket(
+      'community-files',
+      userId,
+      files.map((f) => f.file)
     );
-    return urls.filter((u): u is string => !!u);
+    return urls.filter(Boolean);
   }
 
   // 저장/수정
@@ -126,46 +105,31 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
 
     setIsSubmitting(true);
     try {
-      const {
-        data: { user },
-        error: authErr,
-      } = await supabase.auth.getUser();
-      if (authErr) throw authErr;
-      if (!user) throw new Error('로그인이 필요합니다.');
+      const user = await getAuthedUserOrThrow();
 
       // 1) 새 파일 업로드
       const newUrls = await uploadFiles(user.id, newFiles);
 
-      // 2) 최종 file_urls 구성: (남겨둔 파일) + (새 업로드 파일)
+      // 2) 최종 file_urls 구성
       const file_urls = [...existingUrls, ...newUrls];
 
       if (mode === 'create') {
-        const { data, error } = await supabase
-          .from('community')
-          .insert({
-            profile_id: user.id,
-            tarot_id: selectedTarotId,
-            title,
-            contents: content,
-            file_urls,
-          })
-          .select('id') // insert 후 그 행의 id 컬럼 가져오기
-          .single();
-        if (error) throw error;
-        onSubmitDone(data.id);
+        const id = await createCommunity({
+          profile_id: user.id,
+          tarot_id: selectedTarotId,
+          title,
+          contents: content,
+          file_urls,
+        });
+        onSubmitDone(id);
       } else {
         if (!initial?.id) throw new Error('잘못된 요청입니다.');
-        const { error } = await supabase
-          .from('community')
-          .update({
-            tarot_id: selectedTarotId,
-            title,
-            contents: content,
-            file_urls,
-          })
-          .eq('id', initial.id)
-          .single();
-        if (error) throw error;
+        await updateCommunity(initial.id, {
+          tarot_id: selectedTarotId,
+          title,
+          contents: content,
+          file_urls,
+        });
         onSubmitDone(initial.id);
       }
     } catch (e) {
@@ -295,7 +259,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
         </form>
       </section>
 
-      {/* 타로 선택 모달 */}
+      {/* 타로 이미지 선택 모달 */}
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
@@ -317,7 +281,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
               </button>
             </div>
 
-            <div className="max-h-[70vh] overflow-y-auto pr-1">
+            <div className="max-h-[70vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent hover:scrollbar-thumb-white/60">
               {tarotLoading && <div className="py-20 text-center text-white/70">불러오는 중…</div>}
               {tarotErr && !tarotLoading && (
                 <div className="py-10 text-center text-red-300">{tarotErr}</div>
@@ -332,12 +296,12 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
                     key={r.id}
                     type="button"
                     onClick={() => attachFromResult(r)}
-                    className="group text-left w-full rounded-xl border border-white/15 bg-white/5 hover:border-white active:shadow-[0_0_12px_rgba(255,255,255,0.35)] overflow-hidden"
+                    className="group cursor-pointer text-left w-full rounded-xl border border-white/15 bg-white/5 hover:border-white active:shadow-[0_0_12px_rgba(255,255,255,0.35)] overflow-hidden"
                   >
                     <div className="w-full bg-black/20">
                       <img
-                        src={r.result ?? ''}
-                        alt="tarot-result"
+                        src={r.image_url ?? ''}
+                        alt="tarot-image"
                         className="block w-full max-h-[320px] object-contain"
                         loading="lazy"
                       />

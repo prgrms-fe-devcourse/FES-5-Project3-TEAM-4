@@ -111,6 +111,19 @@ export async function selectCommunityById(id: string): Promise<CommunityRow | nu
   }
 }
 
+// 글 하나 insert
+export async function createCommunity(input: {
+  profile_id: string;
+  tarot_id: string | null;
+  title: string;
+  contents: string;
+  file_urls: string[];
+}): Promise<string> {
+  const { data, error } = await supabase.from('community').insert(input).select('id').single();
+  if (error) throw error;
+  return data.id as string;
+}
+
 // 글 하나 업데이트
 export async function updateCommunity(
   id: string,
