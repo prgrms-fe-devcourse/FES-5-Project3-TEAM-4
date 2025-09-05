@@ -28,8 +28,10 @@ function OAuthCallback() {
         });
         return;
       }
+      console.log('userData', userData);
       const userInfo = await selectProfileData(userData.id);
       //회원이 아닐경우 profile테이블에 insert
+      console.log('userInfo', userInfo);
       if (!userInfo || userInfo.length === 0) insertProfile(userData.id);
       window.history.replaceState({}, '', '/');
       navigate(from, { replace: true });
