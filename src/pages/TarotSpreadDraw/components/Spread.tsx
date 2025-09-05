@@ -21,6 +21,7 @@ import {
 import Loading from '@/common/components/Loading';
 import { createPortal, flushSync } from 'react-dom';
 
+import { showAlert } from '@/common/utils/sweetalert';
 import supabase from '@/common/api/supabase/supabase';
 import { saveTarotResult, updateTarotSummary } from '@/pages/TarotResult/utils/saveTarotResult';
 import { saveTarotInfoMain, saveTarotInfoSubs } from '@/pages/TarotResult/utils/saveTarotInfo';
@@ -53,6 +54,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
   const saveSpreadSnapshot = tarotStore((s) => s.saveSpreadSnapshot);
   const setReadingId = tarotStore((s) => s.setReadingId);
   const readingId = tarotStore((s) => s.readingId);
+  const clearAll = tarotStore((s) => s.clearAll);
 
   const setTarotId = tarotStore((s) => s.setTarotId);
   const setGeminiAnalysis = tarotStore((s) => s.setGeminiAnalysis);
@@ -636,12 +638,17 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                       }, 3000);
 
                       try {
-                        const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
-                        if (data) {
-                          setGeminiAnalysis(data);
-                          const uid = await getUid();
-                          if (uid && !tarotIdRef.current) {
-                            const tarotRow = await saveTarotResult(data);
+                        const { ok, message, analysisData } = await geminiTarotAnalysis(
+                          topic ?? '일반',
+                          cards,
+                          msg
+                        );
+
+                        if (ok) {
+                          if (!analysisData) return;
+                          setGeminiAnalysis(analysisData);
+                          if (!tarotIdRef.current) {
+                            const tarotRow = await saveTarotResult(analysisData);
                             if (tarotRow) {
                               setTarotId(tarotRow.id);
                               tarotIdRef.current = tarotRow.id;
@@ -650,9 +657,14 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                           }
                           const uid2 = await getUid();
                           if (uid2 && tarotIdRef.current) {
-                            const map = await saveTarotInfoMain(data, tarotIdRef.current);
+                            const map = await saveTarotInfoMain(analysisData, tarotIdRef.current);
                             if (map) mainInfoIdMapRef.current = map;
                           }
+                        } else {
+                          showAlert('error', '타로 분석 실패, 다시 시도해주세요', message, () => {
+                            clearAll();
+                            navigate('/tarot/question');
+                          });
                         }
                       } finally {
                         fetchInFlightRef.current = false;
@@ -681,18 +693,24 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                       }, 3000);
 
                       try {
-                        const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
-                        if (data) {
-                          setGeminiAnalysis(data);
-
-                          const uid = await getUid();
-                          if (uid) {
-                            const tid = await ensureTarotId();
-                            if (tid) {
-                              await updateTarotSummary(tid, data);
-                              await saveTarotInfoSubs(data, tid, mainInfoIdMapRef.current);
-                            }
+                        const { ok, message, analysisData } = await geminiTarotAnalysis(
+                          topic ?? '일반',
+                          cards,
+                          msg
+                        );
+                        if (ok) {
+                          if (!analysisData) return;
+                          setGeminiAnalysis(analysisData);
+                          const tid = await ensureTarotId();
+                          if (tid) {
+                            await updateTarotSummary(tid, analysisData);
+                            await saveTarotInfoSubs(analysisData, tid, mainInfoIdMapRef.current);
                           }
+                        } else {
+                          showAlert('error', '타로 분석 실패, 다시 시도해주세요', message, () => {
+                            clearAll();
+                            navigate('/tarot/question');
+                          });
                         }
                       } finally {
                         fetchInFlightRef.current = false;
