@@ -84,20 +84,22 @@ function TarotCardDescription({ name, infoId, result, subInfo }: Props) {
       {/* 설명 영역 */}
       <div className="flex-1">
         {/* 라벨: 서브카드 포함/없음 */}
-        <div className="mb-1">
+        <div className="lg:mb-1">
           {hasSub ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-300/80 text-black px-3 py-[2px] text-[11px]">
+            <span className="invisible lg:visible inline-flex items-center gap-1 rounded-full bg-amber-300/80 text-black lg:px-3 lg:py-[2px] text-[11px]">
               서브카드 포함
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 border-1 border-main-black rounded-full bg-white/50 text-main-black px-3 py-[2px] text-[11px]">
+            <span className="invisible lg:visible inline-flex items-center gap-1 border-1 border-main-black rounded-full bg-white/50 text-main-black lg:px-3 lg:py-[2px] text-[11px]">
               서브카드 없음
             </span>
           )}
         </div>
 
-        <p className="text-xl font-semibold">{hasSub ? (flipped ? name : subCard?.name) : name}</p>
-        <p className={`text-sm max-h-[80px] overflow-y-auto break-keep ${scroll}`}>
+        <p className="text-xl xl:text-xl lg:text-sm md:text-sm font-semibold">
+          {hasSub ? (flipped ? name : subCard?.name) : name}
+        </p>
+        <p className={`text-sm lg:max-h-[50%] md:max-h-[30%] overflow-y-auto break-keep ${scroll}`}>
           {hasSub ? (flipped ? result : subCard?.result) : result}
         </p>
       </div>

@@ -7,11 +7,11 @@ import { ListHeader } from '@/pages/Community/components/ListHeader';
 import { formatDate } from '@/common/utils/format';
 import supabase from '@/common/api/supabase/supabase';
 import { useToggleLike } from '@/common/hooks/useToggleLike';
-import { selectCommunityListByUserId } from '@/common/api/Community/community';
 import { useAuth } from '@/common/store/authStore';
 import Loading from '@/common/components/Loading';
 import { useShallow } from 'zustand/shallow';
 import { showAlert } from '@/common/utils/sweetalert';
+import { selectCommunityList } from '@/common/api/Community/community';
 
 function Likes() {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ function Likes() {
   const [rows, setRows] = useState<CommunityRowUI[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isRefetch, setIsRefetch] = useState(false);
   const { userId, isReady } = useAuth(
     useShallow((state) => ({ userId: state.userId, isReady: state.isReady }))
   );
@@ -35,7 +36,7 @@ function Likes() {
       setLoading(true);
       try {
         if (!userId) return;
-        const { items } = await selectCommunityListByUserId(userId, 'created_at', false);
+        const { items } = await selectCommunityList('created_at', false);
 
         let likedSet = new Set<string>();
         if (userId && items.length) {
@@ -59,7 +60,7 @@ function Likes() {
     };
 
     fetchList();
-  }, [isReady]);
+  }, [isReady, isRefetch]);
 
   const handleClickLike = async (communityId: string) => {
     const next = await toggleLike(communityId);
@@ -69,6 +70,7 @@ function Likes() {
         r.id === communityId ? { ...r, likes: next.count, likedByMe: next.liked } : r
       )
     );
+    setIsRefetch((prev) => !prev);
   };
 
   const handleClickList = (id: string) => {
@@ -84,7 +86,7 @@ function Likes() {
     likes: r.likes ?? 0,
     liked: !!r.likedByMe,
   }));
-
+  const likedPosts = listForUI.filter((p) => p.liked);
   return (
     <section className="w-full lg:w-[750px] h-[90vh] lg:h-[85vh] pt-10 pb-[86px] mx-auto max-w-[960px] px-6 text-main-white">
       <h1 className="text-main-white pt-14 text-2xl font-semibold mb-4">Likes</h1>
@@ -95,8 +97,7 @@ function Likes() {
         <Loading mode="contents" />
       ) : (
         <ul className="mt-4 space-y-3 h-[80%] overflow-y-auto scrollbar-thin scrollbar-thumb-white/60 scrollbar-track-transparent">
-          {listForUI.map((post) => {
-            if (!post.liked) return;
+          {likedPosts.map((post) => {
             return (
               <ListItem
                 key={post.id}
@@ -106,7 +107,7 @@ function Likes() {
               />
             );
           })}
-          {listForUI.length === 0 && (
+          {likedPosts.length === 0 && (
             <li className="text-white/60 py-6 text-center">
               <p>아직 좋아요한 글이 없어요.</p>
               <Link to={'/community'} className="underline p-1">
