@@ -23,10 +23,9 @@ function FirstQ({ parentTimeline, label }: Props) {
         paths,
         { drawSVG: '0% 0%' },
         {
-          duration: 4,
-          stagger: 0.3,
+          duration: 2,
           drawSVG: '0% 100%',
-          ease: 'none',
+          ease: 'power3-in',
         },
         label
       );

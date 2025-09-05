@@ -8,8 +8,8 @@ import LastQ from './LastQ';
 import ThreeOfSwords from './ThreeOfSwords';
 import TwoOfCups from './TwoOfCups';
 import MainStar from '../../components/MainStar';
-import CardSpin from '../CardSpin';
-import SplitAnswer from '../SplitAnswer';
+import CardSpin from '../../components/CardSpin';
+import SplitAnswer from '../components/SplitAnswer';
 import { useFilterCardName } from '@/common/store/cardStore';
 
 interface Props {
@@ -34,15 +34,15 @@ function LastTarot({ ref: outerRef, register }: Props) {
         parentTLRef.current = tl;
         tl.addLabel('startStar', 0)
           .addLabel('lastQuestion', 'startStar+=3')
-          .addLabel('spin1', 'lastQuestion+=6')
-          .addLabel('spin2', 'spin1+=3')
+          .addLabel('spin1', 'lastQuestion+=3')
+          .addLabel('spin2', 'spin1+=0.5')
           .addLabel('cardName1', 'spin2+=0.5')
           .addLabel('cardName2', 'cardName1+=0.5')
-          .addLabel('textBox', 'cardName2+=1')
+          .addLabel('textBox', 'cardName2+=0.5')
           .from(textBoxRef.current, { opacity: 0, y: 100, duration: 1 }, 'textBox')
-          .addLabel('text1', 'textBox+=1')
-          .addLabel('text2', 'text1+=1')
-          .addLabel('endStar', 'text2+=4');
+          .addLabel('text1', 'textBox+=0.5')
+          .addLabel('text2', 'text1+=0.5')
+          .addLabel('endStar', 'text2+=1.5');
       });
     }, scopeRef);
 
@@ -52,18 +52,16 @@ function LastTarot({ ref: outerRef, register }: Props) {
   return (
     <section
       ref={scopeRef}
-      className=" h-screen w-screen relative overflow-hidden flex flex-col justify-center items-center "
+      className="section h-screen w-screen relative overflow-hidden flex flex-col justify-center items-center "
     >
       <MainStar
         parentTimeline={parentTLRef}
-        className="absolute top-[5vh] left-[0vw]"
+        className="absolute top-[5vh] left-[20vw]"
         from={{ y: '-35vh', opacity: 1, x: 0 }}
         to={[
-          { x: '100vw', y: '20vh' },
-          { x: '50vw', y: '30vh' },
-          { x: '20vw', y: '50vh' },
-          { x: '45vw', y: '70vh' },
-          { x: '45vw', y: '95vh' },
+          { x: '50vw', y: '20vh' },
+          { x: '0vw', y: '40vh' },
+          { x: '20vw', y: '65vh' },
         ]}
         curviness={1.5}
         startLabel="startStar"
@@ -101,7 +99,7 @@ function LastTarot({ ref: outerRef, register }: Props) {
             parentTimeline={parentTLRef}
             label="spin2"
             imgFront={card2Img}
-            x={-200}
+            x={200}
             y={-100}
           />
         </div>

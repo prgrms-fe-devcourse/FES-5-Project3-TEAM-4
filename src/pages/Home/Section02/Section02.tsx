@@ -13,7 +13,6 @@ interface Props {
 
 function Section02({ ref: outerRef, register }: Props) {
   const sectionRef02 = useRef<HTMLDivElement>(null);
-  const bridgeRef = useRef<HTMLDivElement>(null);
   const parentTLRef = useRef<gsap.core.Timeline | null>(null);
 
   const scopeRef = outerRef ?? sectionRef02;
@@ -25,12 +24,12 @@ function Section02({ ref: outerRef, register }: Props) {
 
         tl.addLabel('text1', 0)
           .addLabel('starStart', 0)
-          .addLabel('text1End', 'text1+=4')
-          .addLabel('text2', 'text1End+=4')
-          .addLabel('text2End', 'text2+=4')
+          .addLabel('text1End', 'text1+=2.5')
+          .addLabel('text2', 'text1End+=1.5')
+          .addLabel('text2End', 'text2+=2.5')
 
-          .addLabel('text3', 'text2End+=4')
-          .addLabel('starEnd', 'text3+=4');
+          .addLabel('text3', 'text2End+=1.5')
+          .addLabel('starEnd', 'text3+=3');
       });
     }, scopeRef);
 
@@ -40,18 +39,15 @@ function Section02({ ref: outerRef, register }: Props) {
   return (
     <section
       ref={scopeRef}
-      className="overflow-hidden w-screen h-screen relative flex flex-col justify-center items-center [perspective:1000px]"
+      className="section overflow-hidden w-screen h-screen relative flex flex-col justify-center items-center [perspective:1000px]"
     >
-      <div
-        ref={bridgeRef}
-        className="absolute top-0 w-screen flex flex-col justify-center items-center h-1/10 -bg-linear-180 from-main-black to-yellow-50/0"
-      ></div>
       <MainStar
         parentTimeline={parentTLRef}
         startLabel="starStart"
         endLabel="starEnd"
         from={{ opacity: 0, x: 0, y: -100 }}
         to={[{ x: 0, y: 600 }]}
+        toDuration={1}
       />
       <div className="relative">
         <GlowTextSpacingChange
@@ -71,7 +67,7 @@ function Section02({ ref: outerRef, register }: Props) {
           "내게 질문 해 보세요."
         </GlowTextSpacingChange>
         <GlowTextSpacingChange parentTimeline={parentTLRef} startLabel="text3">
-          "제가 당신의 갸야 할 길을 보여줄게요."
+          "제가 당신이 가야 할 길을 보여줄게요."
         </GlowTextSpacingChange>
       </div>
     </section>

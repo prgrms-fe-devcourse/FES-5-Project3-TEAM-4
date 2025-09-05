@@ -2,7 +2,7 @@ import { useEffect, useRef, type RefObject } from 'react';
 import gsap from 'gsap';
 import tw from '@/common/utils/tw';
 import cardBack from '@/assets/Tarot/tarot_back.svg';
-import BoxGlowEffect from './BoxGlowEffect';
+import BoxGlowEffect from '../Section03/components/BoxGlowEffect';
 
 interface Props {
   parentTimeline: RefObject<gsap.core.Timeline | null>;
@@ -31,7 +31,7 @@ function CardSpin({
       if (!parentTimeline.current) return;
       parentTimeline.current.from(
         cardRef.current,
-        { y: y, x: x, rotationY: '680', opacity: 0, duration: 4, ease: 'power3.Out' },
+        { y: y, x: x, rotationY: '680', opacity: 0, duration: 1, ease: 'power3.Out' },
         label
       );
     }, cardRef);

@@ -81,7 +81,7 @@ function NightStarBackGround({
   }, []);
 
   return (
-    <div className="relative" style={{ width: sizeX, height: sizeY }}>
+    <div className="relative pointer-events-none" style={{ width: sizeX, height: sizeY }}>
       {showMeteor && <Meteor />}
       <canvas
         ref={canvasRef}
