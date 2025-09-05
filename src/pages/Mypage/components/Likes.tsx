@@ -96,7 +96,7 @@ function Likes() {
       ) : (
         <ul className="mt-4 space-y-3 h-[80%] overflow-y-auto scrollbar-thin scrollbar-thumb-white/60 scrollbar-track-transparent">
           {listForUI.map((post) => {
-            if (!post.likes) return;
+            if (!post.liked) return;
             return (
               <ListItem
                 key={post.id}

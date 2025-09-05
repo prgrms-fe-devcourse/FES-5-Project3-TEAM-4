@@ -31,3 +31,30 @@ export async function insertTarotImage(
     return { ok: false };
   }
 }
+
+/**
+ * Tarot image 테이블 select 함수
+ * @param id
+ * @returns
+ */
+export async function selectTarotImage(tartoId: string) {
+  try {
+    const { data: tarotImageData, error: selectarotImageError } = await supabase
+      .from('tarot_image')
+      .select('*')
+      .eq('tarot_id', tartoId);
+    if (selectarotImageError) {
+      showAlert('error', 'Tarot image 조회 실패', selectarotImageError?.message);
+      return;
+    }
+    if (!tarotImageData) return;
+    return tarotImageData;
+  } catch (error) {
+    if (error instanceof Error) {
+      showAlert('error', 'Tarot image 조회 실패', error.message);
+    } else if (typeof error === 'string') {
+      showAlert('error', 'Tarot image 조회 실패', error);
+    }
+    return;
+  }
+}

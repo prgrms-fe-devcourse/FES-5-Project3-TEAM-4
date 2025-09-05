@@ -54,7 +54,7 @@ function Record() {
       <div className="w-full h-[90%] relative">
         <div className="w-full h-[95%] rounded-[20px] p-4 absolute z-30">
           <div className="top-0 flex flex-col h-[100%] items-center pt-4  absolute">
-            <img src="/icons/boy2.svg" alt="달에서 낚시하는 소년 이미지" loading="lazy" />
+            <img src="/images/moon_boy.webp" alt="달에서 낚시하는 소년 이미지" loading="lazy" />
             <div className="w-px ml-[98px] flex-1 bg-white/25" />
             <img
               className="ml-[90px]"
