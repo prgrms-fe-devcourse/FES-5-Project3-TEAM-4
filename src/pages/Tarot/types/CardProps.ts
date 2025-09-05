@@ -22,6 +22,7 @@ export type TarotCardProps = {
   frontSrc: string;
   width?: number;
   faceUp?: boolean;
+  initialFaceUp?: boolean;
   reversed?: boolean;
   flipDir?: number;
   locked?: boolean;
