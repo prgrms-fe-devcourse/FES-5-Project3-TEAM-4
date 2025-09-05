@@ -1,8 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react';
-// import { useYellowGlowText } from '../hooks/useYellowGlowText';
+import { useYellowGlowText } from '../hooks/useYellowGlowText';
 import gsap from 'gsap';
 import tw from '@/common/utils/tw';
-// import BoxGlowEffect from '../Section03/components/BoxGlowEffect';
 
 interface Props {
   parentTimeline: RefObject<gsap.core.Timeline | null>;
@@ -13,7 +12,7 @@ interface Props {
   endLabel?: string;
 }
 
-function GlowTextSpacingChange({
+function GlowTextSpacingChange_({
   parentTimeline,
   startLabel,
   endLabel,
@@ -22,7 +21,7 @@ function GlowTextSpacingChange({
 }: Props) {
   const textRef = useRef<HTMLHeadingElement>(null);
 
-  // useYellowGlowText(textRef);
+  useYellowGlowText(textRef);
 
   useEffect(() => {
     if (!textRef.current) return;
@@ -58,4 +57,4 @@ function GlowTextSpacingChange({
     </h1>
   );
 }
-export default GlowTextSpacingChange;
+export default GlowTextSpacingChange_;

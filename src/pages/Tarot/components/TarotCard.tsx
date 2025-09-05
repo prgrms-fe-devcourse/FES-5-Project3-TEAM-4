@@ -15,6 +15,7 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
     frontSrc,
     width = 210,
     faceUp = false,
+    initialFaceUp = false,
     reversed = false,
     flipDir = -1,
     locked = false,
@@ -36,7 +37,7 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
 
   const { isFaceUp, setIsFaceUp, flip, animatingRef } = useCardFlip({
     id,
-    faceUpProp: faceUp,
+    faceUpProp: initialFaceUp || faceUp,
     flipDir,
     onFlip,
     cardRef,
@@ -77,8 +78,8 @@ const TarotCard = forwardRef<TarotCardHandle, TarotCardProps>(function TarotCard
   });
 
   useEffect(() => {
-    setIsFaceUp(faceUp);
-  }, [faceUp, setIsFaceUp]);
+    setIsFaceUp(faceUp || initialFaceUp);
+  }, [faceUp, initialFaceUp, setIsFaceUp]);
 
   useEffect(() => {
     setIsLocked(locked);

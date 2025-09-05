@@ -20,7 +20,7 @@ function OpenTarotShop({ parentTimeline, label }: Props) {
 
       parentTimeline.current.to(
         doorRef.current,
-        { rotationY: '85', duration: 4, ease: 'power3.inOut' },
+        { rotationY: '85', duration: 3, ease: 'power3.inOut' },
         label
       );
     }, tarotShopWrapperRef);

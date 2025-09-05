@@ -7,7 +7,7 @@ interface Props {
   label?: string;
 }
 
-function CloseEyes({ parentTimeline, label, children }: Props) {
+function OpenEyes({ parentTimeline, label, children }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -16,13 +16,14 @@ function CloseEyes({ parentTimeline, label, children }: Props) {
   useEffect(() => {
     const ctx = gsap.context(() => {
       if (!parentTimeline.current) return;
-      gsap.set([topRef.current, bottomRef.current], { height: 0 });
-      gsap.set(blurRef.current, { filter: 'blur(0px)' });
+      gsap.set(topRef.current, { height: '50vh' });
+      gsap.set(bottomRef.current, { height: '60vh' });
+      gsap.set(blurRef.current, { filter: 'blur(12px)' });
 
       parentTimeline.current
-        .to(blurRef.current, { filter: 'blur(12px)', duration: 0.35 }, label)
-        .to(topRef.current, { height: '50vh', duration: 0.7 }, label)
-        .to(bottomRef.current, { height: '50vh', duration: 0.7 }, label);
+        .to(bottomRef.current, { height: 0, duration: 0.7 }, label)
+        .to(topRef.current, { height: 0, duration: 0.7 }, '<')
+        .to(blurRef.current, { filter: 'blur(0px)', duration: 0.35 }, '<');
     }, wrapRef);
 
     return () => ctx.revert();
@@ -39,9 +40,9 @@ function CloseEyes({ parentTimeline, label, children }: Props) {
       </div>
       <div
         ref={bottomRef}
-        className="absolute left-0 bottom-0 w-full h-0 bg-main-black z-20 pointer-events-none will-change-[height] shadow-[0_-10px_15px_-3px] shadow-main-black"
+        className="absolute left-0 -bottom-10 w-full h-0 bg-main-black z-20 pointer-events-none will-change-[height] shadow-[0_-10px_15px_-3px] shadow-main-black"
       />
     </div>
   );
 }
-export default CloseEyes;
+export default OpenEyes;
