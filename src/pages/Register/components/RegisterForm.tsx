@@ -1,5 +1,4 @@
 import { registUser } from '@/common/api/auth/register';
-import { insertProfile } from '@/common/api/Profile/profile';
 import AuthValidate from '@/common/components/AuthValidate';
 import EmailField from '@/common/components/EmailField';
 import PasswordField from '@/common/components/PasswordField';
@@ -22,11 +21,9 @@ function RegisterForm() {
     }
     const registUserInfo = await registUser(email, password);
     if (registUserInfo && registUserInfo.id) {
-      const res = await insertProfile(registUserInfo.id);
-      if (res.ok) {
-        showAlert('success', '회원가입되었습니다.');
+      showAlert('success', '회원가입되었습니다.', '', () => {
         navigate('/auth/login');
-      }
+      });
     }
   };
 
