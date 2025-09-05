@@ -1,5 +1,5 @@
 import supabase from '@/common/api/supabase/supabase';
-import { insertTarotImage } from '@/common/api/Tarot/tarotImage';
+import { insertTarotImage, selectTarotImage } from '@/common/api/Tarot/tarotImage';
 import { toBlob } from 'html-to-image';
 import type { RefObject } from 'react';
 
@@ -65,7 +65,9 @@ export async function captureResult(
   // const userId = useAuth((state) => state.userId);
   if (!userId) return;
   if (!rootRef.current) return;
-
+  const tarotImageData = (await selectTarotImage(tarotId)) ?? [];
+  console.log(tarotImageData);
+  if (tarotImageData?.length > 0) return;
   // 1) 캡처 대상 노드들 (표지 + 페이지)
   const nodes: HTMLElement[] = [
     ...rootRef.current.querySelectorAll<HTMLElement>('[data-cover], .page'),
