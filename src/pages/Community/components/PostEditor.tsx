@@ -32,7 +32,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
   // 타로
   const [open, setOpen] = useState(false);
   const [tarotLoading, setTarotLoading] = useState(false);
-  const [tarotRows, setTarotRows] = useState<Tables<'tarot'>[]>([]);
+  const [tarotRows, setTarotRows] = useState<Tables<'tarot_image'>[]>([]);
   const [tarotErr, setTarotErr] = useState<string | null>(null);
   const [selectedTarotId, setSelectedTarotId] = useState<string | null>(initial?.tarot_id ?? null);
 
@@ -67,8 +67,8 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
         if (!user) throw new Error('로그인이 필요합니다.');
 
         const { data, error } = await supabase
-          .from('tarot')
-          .select('id, profile_id, created_at, result, topic, question')
+          .from('tarot_image')
+          .select('id, profile_id, tarot_id, image_url, created_at')
           .eq('profile_id', user.id)
           .order('created_at', { ascending: false });
         if (error) throw error;
@@ -81,20 +81,21 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
     })();
   }, [open]);
 
-  // 타로 결과 이미지를 파일로 첨부
-  const attachFromResult = async (r: Tables<'tarot'>) => {
+  // 타로 이미지 한 건을 첨부 파일로 변환해서 추가
+  const attachFromResult = async (r: Tables<'tarot_image'>) => {
     try {
-      if (!r.result) {
+      if (!r.image_url) {
         showAlert('error', '이미지 주소가 없습니다.');
         return;
       }
-      const resp = await fetch(r.result);
+      const resp = await fetch(r.image_url);
       const blob = await resp.blob();
       const ext = blob.type.split('/')[1] || 'png';
       const safeDate = (r.created_at || '').replace(/[:\s]/g, '-');
       const file = new File([blob], `tarot-${safeDate}.${ext}`, { type: blob.type || 'image/png' });
+
       setNewFiles((prev) => [...prev, { id: crypto.randomUUID(), file }]);
-      setSelectedTarotId(r.id);
+      setSelectedTarotId(r.tarot_id ?? null);
       setOpen(false);
     } catch {
       showAlert('error', '이미지를 첨부로 변환하는 데 실패했어요.');
@@ -149,7 +150,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
             contents: content,
             file_urls,
           })
-          .select('id') // insert 후 그 행의 id 컬럼 가져오기
+          .select('id')
           .single();
         if (error) throw error;
         onSubmitDone(data.id);
@@ -295,7 +296,7 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
         </form>
       </section>
 
-      {/* 타로 선택 모달 */}
+      {/* 타로 이미지 선택 모달 */}
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
@@ -317,7 +318,10 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
               </button>
             </div>
 
-            <div className="max-h-[70vh] overflow-y-auto pr-1">
+            <div
+              className="max-h-[70vh] overflow-y-auto pr-1 scrollbar scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent
+             hover:scrollbar-thumb-white/60"
+            >
               {tarotLoading && <div className="py-20 text-center text-white/70">불러오는 중…</div>}
               {tarotErr && !tarotLoading && (
                 <div className="py-10 text-center text-red-300">{tarotErr}</div>
@@ -332,12 +336,12 @@ export default function PostEditor({ mode, initial, onSubmitDone }: Props) {
                     key={r.id}
                     type="button"
                     onClick={() => attachFromResult(r)}
-                    className="group text-left w-full rounded-xl border border-white/15 bg-white/5 hover:border-white active:shadow-[0_0_12px_rgba(255,255,255,0.35)] overflow-hidden"
+                    className="group cursor-pointer text-left w-full rounded-xl border border-white/15 bg-white/5 hover:border-white active:shadow-[0_0_12px_rgba(255,255,255,0.35)] overflow-hidden"
                   >
                     <div className="w-full bg-black/20">
                       <img
-                        src={r.result ?? ''}
-                        alt="tarot-result"
+                        src={r.image_url ?? ''}
+                        alt="tarot-image"
                         className="block w-full max-h-[320px] object-contain"
                         loading="lazy"
                       />
