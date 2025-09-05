@@ -1,4 +1,3 @@
-// src/pages/Tarot/components/Spread.tsx
 import { useRef, useCallback, useEffect, useState, useMemo, type RefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
@@ -71,6 +70,17 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
   const navigatedRef = useRef(false);
   const navigate = useNavigate();
 
+  const authedUidRef = useRef<string | null | undefined>(undefined);
+  const getUid = useCallback(async () => {
+    if (authedUidRef.current !== undefined) return authedUidRef.current;
+    const { data } = await supabase.auth.getUser();
+    authedUidRef.current = data?.user?.id ?? null;
+    return authedUidRef.current;
+  }, []);
+  useEffect(() => {
+    getUid();
+  }, [getUid]);
+
   const goResults = useCallback(() => {
     if (navigatedRef.current) return;
     navigatedRef.current = true;
@@ -101,18 +111,15 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       tarotIdRef.current = readingId;
       return readingId;
     }
+    const uid = await getUid();
+    if (!uid) return null;
     try {
-      const { data: auth } = await supabase.auth.getUser();
-      const uid = auth?.user?.id;
-      if (!uid) return null;
-
       const { data } = await supabase
         .from('tarot')
         .select('id')
         .eq('profile_id', uid)
         .order('created_at', { ascending: false })
         .limit(1);
-
       const id = data?.[0]?.id ?? null;
       if (id) {
         tarotIdRef.current = id;
@@ -122,7 +129,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
     } catch {
       return null;
     }
-  }, [readingId, setReadingId]);
+  }, [getUid, readingId, setReadingId]);
 
   const setWrapRef = useCallback(
     (i: number) => (el: HTMLDivElement | null) => {
@@ -333,6 +340,8 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
         ref?.flip(true);
         const root = ref?.rootEl as HTMLElement | null;
         if (root) root.dataset.fitr = '0.8';
+        const wrap = wrapsRef.current[deckIdx];
+        if (wrap) gsap.set(wrap, { zIndex: mi + 1 });
       });
     });
 
@@ -396,6 +405,8 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       setTimeout(() => {
         ref?.flip(true);
       }, order * 150);
+      const wrap = wrapsRef.current[deckIdx!];
+      if (wrap) gsap.set(wrap, { zIndex: si + 1 });
     });
   }, [clarifyMode, slotRefs?.length, orderedDeck, filledBySlot, slots, setCard]);
 
@@ -505,6 +516,9 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
 
       onSnap?.(hit, _id);
       scheduleRealign(idx, hit!, 220);
+
+      const wrap = wrapsRef.current[idx];
+      if (wrap) gsap.set(wrap, { zIndex: hit! + 1 });
     };
 
   function LoadingOverlay({ message }: { message: string }) {
@@ -573,7 +587,8 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                         const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
                         if (data) {
                           setGeminiAnalysis(data);
-                          if (!tarotIdRef.current) {
+                          const uid = await getUid();
+                          if (uid && !tarotIdRef.current) {
                             const tarotRow = await saveTarotResult(data);
                             if (tarotRow) {
                               setTarotId(tarotRow.id);
@@ -581,7 +596,8 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                               setReadingId(tarotRow.id);
                             }
                           }
-                          if (tarotIdRef.current) {
+                          const uid2 = await getUid();
+                          if (uid2 && tarotIdRef.current) {
                             const map = await saveTarotInfoMain(data, tarotIdRef.current);
                             if (map) mainInfoIdMapRef.current = map;
                           }
@@ -616,10 +632,18 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                         const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
                         if (data) {
                           setGeminiAnalysis(data);
-                          const tid = await ensureTarotId();
-                          if (tid) {
-                            await updateTarotSummary(tid, data);
-                            await saveTarotInfoSubs(data, tid, mainInfoIdMapRef.current);
+
+                          const uid = await getUid();
+                          if (uid) {
+                            const tid = await ensureTarotId();
+                            if (tid) {
+                              await updateTarotSummary(tid, data);
+                              await saveTarotInfoSubs(data, tid, mainInfoIdMapRef.current);
+                            }
+                          }
+                          // 비로그인(게스트)인 경우: supabase 관련 접근 없이 바로 결과로 이동
+                          if (!uid) {
+                            // 아무 저장도 하지 않음 (Supabase write/read 호출 금지)
                           }
                         }
                       } finally {
