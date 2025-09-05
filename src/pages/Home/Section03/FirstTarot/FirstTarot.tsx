@@ -70,7 +70,7 @@ function FirstTarot({ ref: outerRef, register }: Props) {
             y={-100}
           />
 
-          <div>
+          <div className="flex flex-col gap-5">
             <AceOfPentacles parentTimeline={parentTLRef} label="cardName" />
             <div
               ref={textBoxRef}

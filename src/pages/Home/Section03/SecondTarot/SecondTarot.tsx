@@ -77,7 +77,7 @@ function SecondTarot({ ref: outerRef, register }: Props) {
             y={-100}
           />
 
-          <div>
+          <div className="flex flex-col gap-5">
             <WheelOfFortune parentTimeline={parentTLRef} label="cardName" />
             <div
               ref={textBoxRef}

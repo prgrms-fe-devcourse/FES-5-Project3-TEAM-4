@@ -71,16 +71,16 @@ function Section05({ ref: outerRef, register }: Props) {
           <div className="flex flex-row gap-60 transform-3d">
             <div
               ref={cardRef1}
-              className="relative min-w-42 min-h-72 shadow-lg rounded-xl flex items-center justify-center transform-3d"
+              className="relative w-35 h-60 shadow-lg rounded-xl flex items-center justify-center transform-3d cursor-pointer hover:border-main-white hover:shadow-main-white hover:shadow-[0_0_15px]"
               onClick={handleScrollUp}
             >
               <img src={cardBack} />
             </div>
 
-            <NavLink to={'question'}>
+            <NavLink to={'tarot'}>
               <div
                 ref={cardRef2}
-                className="relative min-w-42 min-h-72 shadow-lg rounded-xl flex items-center justify-center transform-3d cursor-pointer"
+                className="relative w-35 h-60 shadow-lg rounded-xl flex items-center justify-center transform-3d cursor-pointer hover:border-main-white hover:shadow-main-white hover:shadow-[0_0_15px]"
               >
                 <img src={cardBack} />
               </div>
