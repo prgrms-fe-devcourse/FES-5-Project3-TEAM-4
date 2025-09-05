@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import DrawMoreMsg from './components/DrawMoreMsg';
 import ResultPair from './components/ResultCardPair';
 import TarotFront from '@/assets/Tarot/tarot_front.svg';
@@ -7,6 +7,7 @@ import { isAmbiguous } from './utils/ambiguous';
 
 import { tarotStore, SLOTS, type SlotPack } from '@/pages/Tarot/store/tarotStore';
 import { useResultSticky } from './hooks/useResultSticky';
+import { consumeHardReload } from '../Tarot/utils/consumerHardReload';
 
 type CardLike = {
   id: string | number;
@@ -23,12 +24,17 @@ type ResultPairItem = {
 export default function TarotResult() {
   useResultSticky();
 
-  const location = useLocation();
+  // const location = useLocation();
   const slots = tarotStore((s) => s.slots);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
-    // 필요 시 readingId로 Supabase refetch
-  }, [location.key]);
+    if (consumeHardReload()) {
+      tarotStore.getState().clearAll();
+      navigate('/tarot/question', { replace: true });
+    }
+  }, [navigate]);
 
   const pairs = useMemo<ResultPairItem[]>(() => {
     return SLOTS.map((key) => {

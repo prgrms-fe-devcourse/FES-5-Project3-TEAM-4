@@ -632,6 +632,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                         const data = await geminiTarotAnalysis(topic ?? '일반', cards, msg);
                         if (data) {
                           setGeminiAnalysis(data);
+
                           const uid = await getUid();
                           if (uid) {
                             const tid = await ensureTarotId();
@@ -639,6 +640,10 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                               await updateTarotSummary(tid, data);
                               await saveTarotInfoSubs(data, tid, mainInfoIdMapRef.current);
                             }
+                          }
+                          // 비로그인(게스트)인 경우: supabase 관련 접근 없이 바로 결과로 이동
+                          if (!uid) {
+                            // 아무 저장도 하지 않음 (Supabase write/read 호출 금지)
                           }
                         }
                       } finally {
