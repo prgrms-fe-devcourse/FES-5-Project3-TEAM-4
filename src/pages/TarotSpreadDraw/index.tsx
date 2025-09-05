@@ -1,8 +1,10 @@
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import TarotSpread from './components/TarotSpread';
 import DrawSlotPair from './components/DrawSlotPair';
 import { tarotStore, SLOTS } from '@/pages/Tarot/store/tarotStore';
 import { isAmbiguous } from '../TarotResult/utils/ambiguous';
+import { useNavigate } from 'react-router';
+import { consumeHardReload } from '../Tarot/utils/consumerHardReload';
 
 const SLOT_LABELS = ['Past', 'Present', 'Future'] as const;
 
@@ -33,6 +35,15 @@ export default function TarotSpreadDraw() {
 
   const [filledMain, setFilledMain] = useState<Array<number | string | null>>([null, null, null]);
   const [filledSub, setFilledSub] = useState<Array<number | string | null>>([null, null, null]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (consumeHardReload()) {
+      tarotStore.getState().clearAll();
+      navigate('/tarot/question', { replace: true });
+    }
+  }, [navigate]);
 
   const requireClarifyByIndex = useMemo(
     () =>
@@ -95,11 +106,11 @@ export default function TarotSpreadDraw() {
   return (
     <div className="min-h-screen text-main-white">
       <div className="mx-auto w-full max-w-6xl px-6 py-10 space-y-10">
-        <section className="relative">
+        <section className="relative z-20">
           <TarotSpread slotRefs={slotRefs} onSnap={handleSnap} canAccept={canAccept} />
         </section>
 
-        <section className="flex items-center justify-center gap-6 md:gap-10">
+        <section className="relative z-10 flex items-center justify-center gap-6 md:gap-10">
           {SLOT_LABELS.map((label, i) => {
             const showSub = clarifyMode && requireClarifyByIndex[i];
             return (

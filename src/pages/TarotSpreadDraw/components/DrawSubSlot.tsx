@@ -20,7 +20,7 @@ const DrawSubSlot = forwardRef<HTMLDivElement, Props>(function DrawSubSlot(
       data-slot
       style={{ width, height }}
       className={clsx(
-        'relative rounded-xl border-2 border-dashed transition-all pointer-events-none bg-white/5',
+        'relative z-0 rounded-xl border-2 border-dashed transition-all pointer-events-none bg-white/5',
         filled ? 'border-main-white/80' : 'border-main-white/20',
         active &&
           !filled &&

@@ -5,17 +5,28 @@ import InterPretaionText from './InterPretaionText';
 import InterPretaionImage from './InterPretaionImage';
 import gsap from 'gsap';
 import RecordDetail from '@/pages/Mypage/components/RecordDetail';
+import { useAuth } from '@/common/store/authStore';
 
 interface Props {
   tarotAnalysisData: TarotAnalysis | null;
+  tarotId: string | null;
+  clickedNumber?: number;
 }
 
-function TarotPopupSlider({ tarotAnalysisData }: Props) {
+function TarotPopupSlider({ tarotAnalysisData, tarotId, clickedNumber = 0 }: Props) {
+  const userId = useAuth((state) => state.userId);
   const cardList = useMemo(() => tarotAnalysisData?.cards ?? [], [tarotAnalysisData]);
+  const cardListLength = useMemo(() => {
+    if (userId) {
+      return cardList.length;
+    } else {
+      return cardList.length - 1;
+    }
+  }, [cardList]);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   // 현재 슬라이드 index
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(clickedNumber);
   const isAnimating = useRef(false);
 
   // index 변경될 때 트랙을 이동
@@ -38,21 +49,9 @@ function TarotPopupSlider({ tarotAnalysisData }: Props) {
     });
   }, [index]);
 
-  // 최초/리사이즈 시 위치 맞추기
-  // useEffect(() => {
-  //   const syncPos = () => {
-  //     if (!viewportRef.current || !trackRef.current) return;
-  //     const width = viewportRef.current.clientWidth;
-  //     gsap.set(trackRef.current, { x: -width * index });
-  //   };
-  //   syncPos();
-  //   window.addEventListener('resize', syncPos);
-  //   return () => window.removeEventListener('resize', syncPos);
-  // }, [index]);
-
   useEffect(() => {
     viewportRef.current?.focus();
-  }, [cardList.length]);
+  }, [cardListLength]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (isAnimating.current) return;
@@ -68,7 +67,7 @@ function TarotPopupSlider({ tarotAnalysisData }: Props) {
     setIndex((i) => (i - 1 < 0 ? 0 : i - 1));
   };
   const next = () => {
-    setIndex((i) => (i + 1 > cardList.length ? cardList.length : i + 1));
+    setIndex((i) => (i + 1 > cardListLength ? cardListLength : i + 1));
   };
 
   return (
@@ -132,9 +131,9 @@ function TarotPopupSlider({ tarotAnalysisData }: Props) {
             ))}
           <div
             className="min-w-full h-full flex gap-5 items-center justify-center"
-            key={cardList.length + 1}
+            key={cardListLength + 1}
           >
-            <RecordDetail tarotId="57ae1195-797a-4e5a-85af-6f1011d156c0" type="result" />
+            {userId && <RecordDetail tarotId={tarotId!} type="result" />}
           </div>
         </div>
         <button
@@ -152,10 +151,14 @@ function TarotPopupSlider({ tarotAnalysisData }: Props) {
           type="button"
           className="w-8 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
           onClick={next}
-          disabled={index === cardList.length ? true : false}
+          disabled={index === cardListLength ? true : false}
         >
           <img
-            src={index === 3 ? '/icons/right_inactive_arrow.svg' : '/icons/right_active_arrow.svg'}
+            src={
+              index === cardListLength
+                ? '/icons/right_inactive_arrow.svg'
+                : '/icons/right_active_arrow.svg'
+            }
             alt="다음버튼"
           />
         </button>

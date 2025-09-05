@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import cardBackUrl from '@/assets/Tarot/tarot_back.svg?url';
 
 const CARD_SRC = cardBackUrl;
-const VELVET_URL = '/velvet-light.png';
+const VELVET_URL = '/velvet.png';
 
 const THEME = {
   canvasBg: VELVET_URL,
@@ -267,8 +267,8 @@ function Deck3D({ faceUrl }: { faceUrl: string }) {
           <meshStandardMaterial
             attach="material-0"
             color="#1b2234"
-            roughness={0.9}
-            metalness={0.04}
+            roughness={0.6}
+            metalness={0.1}
           />
           <meshStandardMaterial
             attach="material-1"
@@ -296,6 +296,7 @@ export default function ShuffleCards() {
   const faceUrl = useMemo(() => {
     const s = CARD_SRC.trim();
     return s.startsWith('<svg') ? svgToDataUrl(s) : s;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const tableMap = useMemo(() => {
@@ -311,30 +312,24 @@ export default function ShuffleCards() {
   const STAGE_Y = -2.0;
   const TABLE_GAP = -0.55;
 
-  const bgStyle = {
-    backgroundImage: `url(${THEME.canvasBg})`,
-    backgroundRepeat: 'no-repeat' as const,
-    backgroundSize: '100% 100%',
-    backgroundPosition: 'center',
-  };
-
   return (
-    <div className="w-screen h-[70vh]" style={bgStyle}>
-      <div className="relative w-screen h-[70vh]" style={bgStyle}>
+    <div className="w-screen h-[70vh]" style={{ background: THEME.canvasBg }}>
+      <div className="relative w-screen h-[70vh]">
         <Canvas
           shadows
           camera={{ position: [0, 15, 0], fov: 28 }}
-          style={{ height: '70vh' }}
+          style={{ height: '70vh', background: THEME.canvasBg }}
           gl={{
+            alpha: true,
             outputColorSpace: THREE.SRGBColorSpace,
-            toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.25,
+            toneMapping: THREE.NoToneMapping,
+            toneMappingExposure: 1,
           }}
         >
           <hemisphereLight intensity={0.6} groundColor={0x223322} />
           <directionalLight
             position={[3, 6, 4]}
-            intensity={1.5}
+            intensity={2.5}
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
@@ -343,21 +338,19 @@ export default function ShuffleCards() {
             position={[-2, 6, 4]}
             angle={0.35}
             penumbra={0.5}
-            intensity={1.35}
+            intensity={3.35}
             castShadow
           />
-
           <group position={[0, STAGE_Y, 0]} rotation={[0.35, 0, -0.04]} scale={0.9}>
             <Deck3D faceUrl={faceUrl} />
           </group>
-
           <mesh
             rotation={[-Math.PI / 2, 0, 0]}
             position={[0, STAGE_Y + TABLE_GAP, 0]}
             receiveShadow
           >
             <planeGeometry args={[26, 26]} />
-            <meshStandardMaterial map={tableMap ?? undefined} roughness={0.95} metalness={0} />
+            <meshBasicMaterial map={tableMap ?? undefined} />
           </mesh>
         </Canvas>
       </div>

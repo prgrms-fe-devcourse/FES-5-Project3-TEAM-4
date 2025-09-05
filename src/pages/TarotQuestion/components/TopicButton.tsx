@@ -1,4 +1,4 @@
-import type { TopicLabel } from '@/common/types/TarotTopics';
+import type { TopicLabel } from '../types/TarotTopics';
 
 type TopicButtonProps = {
   topic: TopicLabel;

@@ -1,11 +1,13 @@
 import { useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import DrawMoreMsg from './components/DrawMoreMsg';
 import ResultPair from './components/ResultCardPair';
 import TarotFront from '@/assets/Tarot/tarot_front.svg';
 import { isAmbiguous } from './utils/ambiguous';
 
 import { tarotStore, SLOTS, type SlotPack } from '@/pages/Tarot/store/tarotStore';
+import { useResultSticky } from './hooks/useResultSticky';
+import { consumeHardReload } from '../Tarot/utils/consumerHardReload';
 
 type CardLike = {
   id: string | number;
@@ -20,12 +22,19 @@ type ResultPairItem = {
 };
 
 export default function TarotResult() {
-  const location = useLocation();
+  useResultSticky();
+
+  // const location = useLocation();
   const slots = tarotStore((s) => s.slots);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
-    // 필요 시 readingId로 Supabase refetch
-  }, [location.key]);
+    if (consumeHardReload()) {
+      tarotStore.getState().clearAll();
+      navigate('/tarot/question', { replace: true });
+    }
+  }, [navigate]);
 
   const pairs = useMemo<ResultPairItem[]>(() => {
     return SLOTS.map((key) => {
@@ -72,13 +81,18 @@ export default function TarotResult() {
       <div className="relative mx-auto max-w-[90vw]">
         <div className="flex flex-wrap items-start justify-center gap-5 md:gap-8">
           {pairs.map((p, i) => (
-            <ResultPair key={i} {...p} />
+            <ResultPair key={i} {...p} index={i} />
           ))}
         </div>
       </div>
 
-      <p className="flex justify-center items-center text-main-white py-5">
-        👆🏻카드 클릭 시 해석을 확인할 수 있습니다.👆🏻
+      <p>
+        <span className="flex justify-center items-center text-main-white py-b-2">
+          👆🏻카드 클릭 시 해석을 확인할 수 있습니다.👆🏻
+        </span>
+        <span className="flex justify-center items-center text-red-500">
+          🚨비로그인 유저의 경우, 타로 결과는 저장할 수 없습니다.🚨
+        </span>
       </p>
     </div>
   );
