@@ -9,6 +9,8 @@ import Section02 from './Section02/Section02';
 import FirstTarot from './Section03/FirstTarot/FirstTarot';
 import SecondTarot from './Section03/SecondTarot/SecondTarot';
 import LastTarot from './Section03/LastTarot/LastTarot';
+import Section04 from './Section04/Section04';
+import Section05 from './Section05/Section05';
 
 import NightStarBackGround from './components/NightStarBackGround';
 
@@ -18,19 +20,24 @@ gsap.registerPlugin(ScrollSmoother);
 function Home() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const s1Ref = useRef<HTMLDivElement>(null);
 
+  const s1Ref = useRef<HTMLDivElement>(null);
   const s2Ref = useRef<HTMLDivElement>(null);
   const firstTarotRef = useRef<HTMLDivElement>(null);
   const secondTarotRef = useRef<HTMLDivElement>(null);
   const lastTarotRef = useRef<HTMLDivElement>(null);
+  const s4Ref = useRef<HTMLDivElement>(null);
+  const s5Ref = useRef<HTMLDivElement>(null);
 
   const s1TLRef = useRef<gsap.core.Timeline | null>(null);
-
   const s2TLRef = useRef<gsap.core.Timeline | null>(null);
   const firstTarotTLRef = useRef<gsap.core.Timeline | null>(null);
   const secondTarotTLRef = useRef<gsap.core.Timeline | null>(null);
   const lastTarotTLRef = useRef<gsap.core.Timeline | null>(null);
+  const s4TLRef = useRef<gsap.core.Timeline | null>(null);
+  const s5TLRef = useRef<gsap.core.Timeline | null>(null);
+
+  const PX_PER_SECOND = 600;
 
   const registerS1 = useCallback((adder: (tl: gsap.core.Timeline) => void) => {
     if (!s1TLRef.current) {
@@ -67,19 +74,42 @@ function Home() {
     adder(lastTarotTLRef.current);
   }, []);
 
+  const registerS4 = useCallback((adder: (tl: gsap.core.Timeline) => void) => {
+    if (!s4TLRef.current) {
+      s4TLRef.current = gsap.timeline({ defaults: { ease: 'none' }, paused: true });
+    }
+    adder(s4TLRef.current);
+  }, []);
+
+  const registerS5 = useCallback((adder: (tl: gsap.core.Timeline) => void) => {
+    if (!s5TLRef.current) {
+      s5TLRef.current = gsap.timeline({ defaults: { ease: 'none' }, paused: true });
+    }
+    adder(s5TLRef.current);
+  }, []);
+
   useGSAP(() => {
+    const smoother = ScrollSmoother.create({
+      wrapper: wrapperRef.current,
+      content: contentRef.current,
+      smooth: 1.2,
+      effects: true,
+    });
+
     ScrollTrigger.getById('sec01')?.kill();
     ScrollTrigger.getById('sec02')?.kill();
     ScrollTrigger.getById('firstTarot')?.kill();
     ScrollTrigger.getById('secondTarot')?.kill();
     ScrollTrigger.getById('lastTarot')?.kill();
+    ScrollTrigger.getById('sec04')?.kill();
+    ScrollTrigger.getById('sec05')?.kill();
 
     if (s1Ref.current && s1TLRef.current) {
       ScrollTrigger.create({
         id: 'sec01',
         trigger: s1Ref.current,
         start: 'top top',
-        end: '+=1000vh',
+        end: () => '+=' + s1TLRef.current!.duration() * PX_PER_SECOND,
         scrub: 1.5,
         pin: true,
         anticipatePin: 1,
@@ -93,13 +123,13 @@ function Home() {
         id: 'sec02',
         trigger: s2Ref.current,
         start: 'top top',
-        end: '+=1000vh',
+        end: () => '+=' + s2TLRef.current!.duration() * PX_PER_SECOND,
         scrub: 2,
         pin: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
         animation: s2TLRef.current,
-        markers: true,
+        // markers: true,
       });
     }
     if (firstTarotRef.current && firstTarotTLRef.current) {
@@ -107,7 +137,7 @@ function Home() {
         id: 'firstTarot',
         trigger: firstTarotRef.current,
         start: 'top top',
-        end: '+=1000vh',
+        end: () => '+=' + firstTarotTLRef.current!.duration() * PX_PER_SECOND,
         scrub: 2,
         pin: true,
         anticipatePin: 1,
@@ -121,7 +151,7 @@ function Home() {
         id: 'secondTarot',
         trigger: secondTarotRef.current,
         start: 'top top',
-        end: '+=1000vh',
+        end: () => '+=' + secondTarotTLRef.current!.duration() * PX_PER_SECOND,
         scrub: 1,
         pin: true,
         anticipatePin: 1,
@@ -135,7 +165,7 @@ function Home() {
         id: 'lastTarot',
         trigger: lastTarotRef.current,
         start: 'top top',
-        end: '+=1000vh',
+        end: () => '+=' + lastTarotTLRef.current!.duration() * PX_PER_SECOND,
         scrub: 1,
         pin: true,
         anticipatePin: 1,
@@ -144,20 +174,53 @@ function Home() {
         // markers: { startColor: 'green', endColor: 'red' },
       });
     }
+    if (s4Ref.current && s4TLRef.current) {
+      ScrollTrigger.create({
+        id: 'sec04',
+        trigger: s4Ref.current,
+        start: 'top top',
+        end: () => '+=' + s4TLRef.current!.duration() * PX_PER_SECOND,
+        scrub: 2,
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        animation: s4TLRef.current,
+        // markers: true,
+      });
+    }
+    if (s5Ref.current && s5TLRef.current) {
+      ScrollTrigger.create({
+        id: 'sec05',
+        trigger: s5Ref.current,
+        start: 'top top',
+        end: () => '+=' + s5TLRef.current!.duration() * PX_PER_SECOND,
+        scrub: 2,
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        animation: s5TLRef.current,
+        // markers: true,
+      });
+    }
+
     // 한 프레임 뒤 측정값 정렬
     requestAnimationFrame(() => ScrollTrigger.refresh());
+
     return () => {
+      smoother.kill();
       ScrollTrigger.getById('sec01')?.kill();
       ScrollTrigger.getById('sec02')?.kill();
       ScrollTrigger.getById('firstTarot')?.kill();
       ScrollTrigger.getById('secondTarot')?.kill();
       ScrollTrigger.getById('lastTarot')?.kill();
+      ScrollTrigger.getById('sec04')?.kill();
+      ScrollTrigger.getById('sec05')?.kill();
     };
   }, []);
 
   return (
     <div ref={wrapperRef}>
-      <div ref={contentRef} className="z-1 w-full">
+      <div id="content" ref={contentRef} className="z-1 w-full absolute">
         <Section01 ref={s1Ref} register={registerS1} />
         <Section02 ref={s2Ref} register={registerS2} />
         <div>
@@ -165,12 +228,14 @@ function Home() {
           <SecondTarot ref={secondTarotRef} register={registerSecondTarot} />
           <LastTarot ref={lastTarotRef} register={registerLastTarot} />
         </div>
-        <NightStarBackGround
-          sizeX="100vw"
-          sizeY="100vh"
-          className="fixed inset-0 bg-none bg-main-black"
-        />
+        <Section04 ref={s4Ref} register={registerS4} />
+        <Section05 ref={s5Ref} register={registerS5} />
       </div>
+      <NightStarBackGround
+        sizeX="100vw"
+        sizeY="100vh"
+        className="fixed inset-0 bg-none bg-main-black pointer-events-none"
+      />
     </div>
   );
 }

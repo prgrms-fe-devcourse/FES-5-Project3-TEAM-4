@@ -6,8 +6,8 @@ import FirstQ from './FirstQ';
 
 import AceOfPentacles from './AceOfPentacles';
 import MainStar from '../../components/MainStar';
-import CardSpin from '../CardSpin';
-import SplitAnswer from '../SplitAnswer';
+import CardSpin from '../../components/CardSpin';
+import SplitAnswer from '../components/SplitAnswer';
 import { useFilterCardName } from '@/common/store/cardStore';
 
 interface Props {
@@ -28,15 +28,14 @@ function FirstTarot({ ref: outerRef, register }: Props) {
     const ctx = gsap.context(() => {
       register((tl) => {
         parentTLRef.current = tl;
-        // tl.addLabel('text', '>').addLabel('spin', 'text+=2');
         tl.addLabel('firstQuestion', 0)
-          .addLabel('spin', 'firstQuestion+=6')
+          .addLabel('spin', 'firstQuestion+=3')
           .addLabel('cardName', 'spin+=0.5')
-          .addLabel('textBox', 'cardName+=1')
-          .from(textBoxRef.current, { opacity: 0, y: 100, duration: 1 }, 'textBox')
-          .addLabel('text1', 'textBox+=1')
-          .addLabel('text2', 'text1+=1')
-          .addLabel('endStar', 'text2+=4');
+          .addLabel('textBox', 'cardName+=0.5')
+          .from(textBoxRef.current, { opacity: 0, y: 100, duration: 0.5 }, 'textBox')
+          .addLabel('text1', 'textBox+=0.5')
+          .addLabel('text2', 'text1+=0.5')
+          .addLabel('endStar', 'text2+=1.5');
       });
     }, scopeRef);
 
@@ -46,7 +45,7 @@ function FirstTarot({ ref: outerRef, register }: Props) {
   return (
     <section
       ref={scopeRef}
-      className=" h-screen w-screen relative overflow-hidden flex flex-col justify-center items-center "
+      className="section h-screen w-screen relative overflow-hidden flex flex-col justify-center items-center "
     >
       <MainStar
         parentTimeline={parentTLRef}
@@ -55,7 +54,6 @@ function FirstTarot({ ref: outerRef, register }: Props) {
           { x: '20vw', y: '20vh' },
           { x: '-30vw', y: '50vh' },
           { x: '30vw', y: '60vh' },
-          { x: '30vw', y: '95vh' },
         ]}
         curviness={1.5}
         endLabel="endStar"

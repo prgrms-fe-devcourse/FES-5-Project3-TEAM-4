@@ -7,6 +7,7 @@ import CrystalBallStage from './components/CrystalBallStage';
 import CrystalSphere from '@/assets/Tarot/crystal_sphere.png';
 import QuestionExamples from './components/QuestionExamples';
 import { tarotStore } from '../Tarot/store/tarotStore';
+import useResetOnQuestionEnter from './hooks/useResetOnQuestionEnter';
 
 type Props = {
   onSubmitQuestion?: (value: string, topic: TopicLabel | null) => void;
@@ -19,13 +20,14 @@ export default function TarotQuestion({
   presetQuestion = '',
   selectedTopicInitial = null,
 }: Props) {
+  useResetOnQuestionEnter();
+
   const navigate = useNavigate();
-  const topicInStore = tarotStore((s) => s.topic);
   const setQuestion = tarotStore((s) => s.setQuestion);
   const setTopic = tarotStore((s) => s.setTopic);
 
   const [selectedTopic, setSelectedTopic] = useState<TopicLabel | null>(
-    selectedTopicInitial ?? topicInStore ?? null
+    selectedTopicInitial ?? null
   );
   const [pickedQuestion, setPickedQuestion] = useState<string>(presetQuestion);
 
