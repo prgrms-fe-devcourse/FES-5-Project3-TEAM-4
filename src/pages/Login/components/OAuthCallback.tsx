@@ -28,11 +28,19 @@ function OAuthCallback() {
         });
         return;
       }
-      console.log('userData', userData);
+
       const userInfo = await selectProfileData(userData.id);
       //회원이 아닐경우 profile테이블에 insert
-      console.log('userInfo', userInfo);
-      if (!userInfo || userInfo.length === 0) insertProfile(userData.id);
+
+      if (!userInfo || userInfo.length === 0) {
+        const { ok } = await insertProfile(userData.id);
+        if (!ok) {
+          showAlert('error', '프로필 생성에 실패했습니다', '', () => {
+            navigate('auth/login', { replace: true });
+          });
+          return; // 실패 시 라우팅 멈추기
+        }
+      }
       window.history.replaceState({}, '', '/');
       navigate(from, { replace: true });
     })();
