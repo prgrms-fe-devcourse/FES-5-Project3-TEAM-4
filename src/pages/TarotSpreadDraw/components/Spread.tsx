@@ -43,6 +43,8 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
   const [slotOfCard, setSlotOfCard] = useState<Array<number | null>>([]);
   const [flippedMain, setFlippedMain] = useState(false);
 
+  const animOnceRef = useRef(false);
+
   const slots = tarotStore((s) => s.slots);
   const setCard = tarotStore((s) => s.setCard);
   const setStage = tarotStore((s) => s.setStage);
@@ -559,6 +561,24 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
       document.body
     );
   }
+
+  useLayoutEffect(() => {
+    if (animOnceRef.current) return;
+    if (clarifyMode) return;
+    if (!orderedDeck.length) return;
+
+    const els = orderedDeck
+      .map((_, i) =>
+        slotOfCard[i] == null ? wrapsRef.current[i]?.querySelector('[data-anim]') : null
+      )
+      .filter(Boolean) as HTMLElement[];
+
+    if (!els.length) return;
+
+    animOnceRef.current = true;
+    gsap.set(els, { opacity: 0, y: 6 });
+    gsap.to(els, { opacity: 1, y: 0, duration: 0.36, ease: 'power2.out', stagger: 0.04 });
+  }, [orderedDeck, clarifyMode]);
 
   return (
     <>
