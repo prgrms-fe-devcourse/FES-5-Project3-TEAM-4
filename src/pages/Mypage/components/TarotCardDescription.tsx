@@ -86,11 +86,11 @@ function TarotCardDescription({ name, infoId, result, subInfo }: Props) {
         {/* 라벨: 서브카드 포함/없음 */}
         <div className="mb-1">
           {hasSub ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-300/80 text-black px-2 py-[2px] text-[11px]">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-300/80 text-black px-3 py-[2px] text-[11px]">
               서브카드 포함
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 border-1 border-main-black rounded-full bg-white/50 text-main-black px-2 py-[2px] text-[11px]">
+            <span className="inline-flex items-center gap-1 border-1 border-main-black rounded-full bg-white/50 text-main-black px-3 py-[2px] text-[11px]">
               서브카드 없음
             </span>
           )}
