@@ -79,7 +79,7 @@ function LastTarot({ ref: outerRef, register }: Props) {
             y={-100}
           />
 
-          <div>
+          <div className="flex flex-col gap-2">
             <ThreeOfSwords parentTimeline={parentTLRef} label="cardName1" />
             <TwoOfCups parentTimeline={parentTLRef} label="cardName2" />
             <div
