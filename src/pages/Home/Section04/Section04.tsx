@@ -1,8 +1,13 @@
 import gsap from 'gsap';
 import { useLayoutEffect, useRef } from 'react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+import flash from './flash.svg';
+
 import MainStar from '../components/MainStar';
 import GlowTextSpacingChange from '../components/GlowTextSpacingChange';
+
+import CloseEyes from '../components/CloseEyes';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,25 +17,28 @@ interface Props {
 }
 
 function Section04({ ref: outerRef, register }: Props) {
-  const sectionRef02 = useRef<HTMLDivElement>(null);
-  const bridgeRef = useRef<HTMLDivElement>(null);
+  const sectionRef04 = useRef<HTMLDivElement>(null);
   const parentTLRef = useRef<gsap.core.Timeline | null>(null);
 
-  const scopeRef = outerRef ?? sectionRef02;
+  const flashRef = useRef<HTMLImageElement | null>(null);
+
+  const scopeRef = outerRef ?? sectionRef04;
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       register((tl) => {
         parentTLRef.current = tl;
 
-        tl.addLabel('text1', 0)
-          .addLabel('starStart', 0)
-          .addLabel('text1End', 'text1+=4')
-          .addLabel('text2', 'text1End+=4')
-          .addLabel('text2End', 'text2+=4')
-
-          .addLabel('text3', 'text2End+=4')
-          .addLabel('starEnd', 'text3+=4');
+        tl.addLabel('startStar', 0)
+          .addLabel('text1', 'startStar+=2')
+          .addLabel('flash', 'text1+=3')
+          .fromTo(
+            flashRef.current,
+            { opacity: 0, scale: 0.2 },
+            { opacity: 1, scale: 12, ease: 'power2.out', duration: 0.5 },
+            'flash'
+          )
+          .addLabel('close', 'flash+=0.5');
       });
     }, scopeRef);
 
@@ -38,43 +46,30 @@ function Section04({ ref: outerRef, register }: Props) {
   }, [scopeRef, register]);
 
   return (
-    <section
-      ref={scopeRef}
-      className="overflow-hidden w-screen h-screen relative flex flex-col justify-center items-center [perspective:1000px]"
-    >
-      <div
-        ref={bridgeRef}
-        className="absolute top-0 w-screen flex flex-col justify-center items-center h-1/10 -bg-linear-180 from-main-black to-yellow-50/0"
-      ></div>
-      <MainStar
-        parentTimeline={parentTLRef}
-        startLabel="starStart"
-        endLabel="starEnd"
-        from={{ opacity: 0, x: 0, y: -100 }}
-        to={[{ x: 0, y: 600 }]}
-      />
-      <div className="relative">
-        <GlowTextSpacingChange
-          parentTimeline={parentTLRef}
-          startLabel="text1"
-          endLabel="text1End"
-          className="absolute top-0 left-0 translate-x-[50%] text-center"
-        >
-          "혹시 고민이 있나요?"
-        </GlowTextSpacingChange>
-        <GlowTextSpacingChange
-          parentTimeline={parentTLRef}
-          startLabel="text2"
-          endLabel="text2End"
-          className="absolute top-0 left-0 translate-x-1/2"
-        >
-          "내게 질문 해 보세요."
-        </GlowTextSpacingChange>
-        <GlowTextSpacingChange parentTimeline={parentTLRef} startLabel="text3">
-          "제가 당신의 갸야 할 길을 보여줄게요."
-        </GlowTextSpacingChange>
-      </div>
-    </section>
+    <>
+      <section ref={scopeRef} className="section overflow-hidden w-screen h-screen relative">
+        <CloseEyes parentTimeline={parentTLRef} label={'close'}>
+          <div className="flex flex-col justify-center items-center absolute top-1/2 left-1/2 -translate-1/2">
+            <MainStar
+              parentTimeline={parentTLRef}
+              className=""
+              startLabel="startStar"
+              endLabel="endStar"
+              from={{ y: '-100vh', opacity: 1, x: 0 }}
+            />
+
+            <GlowTextSpacingChange
+              parentTimeline={parentTLRef}
+              startLabel="text1"
+              endLabel="text1End"
+            >
+              내가 너의 길을 비춰줄게
+            </GlowTextSpacingChange>
+            <img ref={flashRef} src={flash} alt="섬광효과" className="opacity-0 absolute" />
+          </div>
+        </CloseEyes>
+      </section>
+    </>
   );
 }
 export default Section04;
