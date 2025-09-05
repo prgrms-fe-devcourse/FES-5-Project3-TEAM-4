@@ -657,7 +657,7 @@ function Spread({ deck, cardWidth, transforms, slotRefs, resizeKey, onSnap, canA
                           }
                           const uid2 = await getUid();
                           if (uid2 && tarotIdRef.current) {
-                            const map = await saveTarotInfoMain(data, tarotIdRef.current);
+                            const map = await saveTarotInfoMain(analysisData, tarotIdRef.current);
                             if (map) mainInfoIdMapRef.current = map;
                           }
                         } else {
