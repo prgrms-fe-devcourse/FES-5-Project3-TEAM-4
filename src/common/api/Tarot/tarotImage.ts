@@ -1,5 +1,6 @@
 import { showAlert } from '@/common/utils/sweetalert';
 import supabase from '../supabase/supabase';
+import type { Tables } from '@/common/api/supabase/database.types';
 
 /**
  * Record 테이블 insert 함수
@@ -57,4 +58,16 @@ export async function selectTarotImage(tartoId: string) {
     }
     return;
   }
+}
+
+// userId 로 tarot_image 테이블 select
+export async function listTarotImagesByUser(userId: string): Promise<Tables<'tarot_image'>[]> {
+  const { data, error } = await supabase
+    .from('tarot_image')
+    .select('id, profile_id, tarot_id, image_url, created_at')
+    .eq('profile_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
 }

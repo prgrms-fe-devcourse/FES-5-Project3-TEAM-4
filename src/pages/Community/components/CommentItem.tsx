@@ -1,29 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/common/components/Button';
 import { showAlert, showConfirmAlert } from '@/common/utils/sweetalert';
-import type { Tables } from '@/common/api/supabase/database.types';
 import { insertComment, updateComment, deleteComment } from '@/common/api/Community/comment';
 import { formatDate } from '@/common/utils/format';
-
-export type CommentNode = Tables<'comment'> & {
-  // API에서 children을 붙여서 내려주거나, 화면에서 buildTree로 구성
-  children?: CommentNode[];
-  authorName?: string | null; // 필요 시 닉네임 등
-};
-
-type Props = {
-  comment: CommentNode;
-  postAuthorId: string; // 글 작성자 id (post.profile_id)
-  currentUserId?: string | null; // 로그인 사용자 id
-  isAuthed: boolean;
-  depth?: number;
-  postId: string; // community id
-  anonMap: Record<string, string>;
-  // 화면 갱신 핸들러
-  onReplied: () => Promise<void> | void;
-  onEdited: () => Promise<void> | void;
-  onDeleted: () => Promise<void> | void;
-};
+import type { CommentItemProps } from '@/common/types/comment';
 
 export default function CommentItem({
   comment,
@@ -36,7 +16,7 @@ export default function CommentItem({
   onEdited,
   onDeleted,
   anonMap,
-}: Props) {
+}: CommentItemProps) {
   const isOwner = !!currentUserId && currentUserId === comment.profile_id;
   const isWriter = comment.profile_id === postAuthorId;
   const displayName = isWriter ? '글쓴이' : (anonMap[comment.profile_id] ?? '익명');
