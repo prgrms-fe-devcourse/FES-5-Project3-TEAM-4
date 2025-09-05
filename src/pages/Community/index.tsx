@@ -1,15 +1,14 @@
 import { useNavigate } from 'react-router';
-import { useEffect, useState } from 'react';
-
+import { useEffect, useState, useMemo } from 'react';
 import { ListItem, type Post } from '@/common/components/ListItem';
 import { SearchInput } from '@/common/components/SearchInput';
 import { SortBar, type SortKey } from './components/SortBar';
 import { ListHeader } from './components/ListHeader';
 import Pagination from './components/Pagination';
-
 import { selectCommunityList } from '@/common/api/Community/community';
 import type { CommunityRowUI, CommunitySortKey } from '@/common/types/community';
 import { formatDate } from '@/common/utils/format';
+import { debounce } from '@/common/utils/debounce';
 import supabase from '@/common/api/supabase/supabase';
 import AuthOnlyButton from '@/common/components/AuthOnlyButton';
 import { useToggleLike } from '@/common/hooks/useToggleLike';
@@ -29,20 +28,40 @@ export default function Community() {
   const { toggleLike } = useToggleLike();
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortKey>('new');
-  const [q, setQ] = useState('');
+  const [inputValue, setInputValue] = useState('');
+  const [keyword, setKeyword] = useState('');
   const [rows, setRows] = useState<CommunityRowUI[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const debouncedSetKeyword = useMemo(
+    () =>
+      debounce((v: string) => {
+        setKeyword(v);
+        setPage(1);
+      }, 400),
+    []
+  );
+  // UI에 필요한 형태로만 매핑해서 ListItem에 넘김
+  const listForUI: Post[] = rows.map((r) => ({
+    id: r.id,
+    date: formatDate(r.created_at ?? ''),
+    title: r.title ?? '',
+    likes: r.likes ?? 0,
+    liked: !!r.likedByMe,
+  }));
+
   useEffect(() => {
     const fetchList = async () => {
       setLoading(true);
+
+      // 키워드로 검색하는거
       try {
         const { column, ascending } = sortMap[sort];
         const { items, total } = await selectCommunityList(column, ascending, {
           page,
           pageSize: PAGE_SIZE,
-          keyword: q,
+          keyword: keyword,
         });
 
         // 로그인 유저 가져오기
@@ -74,12 +93,7 @@ export default function Community() {
     };
 
     fetchList();
-  }, [page, sort, q]);
-
-  const handleSearch = (value?: string) => {
-    setQ((value ?? q).trim());
-    setPage(1);
-  };
+  }, [page, sort, keyword]);
 
   const handleClickLike = async (communityId: string) => {
     const next = await toggleLike(communityId);
@@ -93,25 +107,18 @@ export default function Community() {
 
   const handleClickList = (id: string) => {
     const row = rows.find((r) => r.id === id);
-
     navigate(`/community/${id}`, { state: { row } });
   };
-
-  // UI에 필요한 형태로만 매핑해서 ListItem에 넘김
-  const listForUI: Post[] = rows.map((r) => ({
-    id: r.id,
-    date: formatDate(r.created_at ?? ''),
-    title: r.title ?? '',
-    likes: r.likes ?? 0,
-    liked: !!r.likedByMe,
-  }));
 
   return (
     <>
       <SearchInput
         placeholder="검색어를 입력해주세요"
-        onChange={(e) => setQ(e.currentTarget.value)}
-        onSearch={() => handleSearch()}
+        value={inputValue}
+        onChange={(e) => {
+          setInputValue(e.currentTarget.value);
+          debouncedSetKeyword(e.currentTarget.value);
+        }}
       />
 
       <SortBar
