@@ -1,134 +1,48 @@
 import supabase from '@/common/api/supabase/supabase';
 import { showAlert } from '@/common/utils/sweetalert';
-import type { CommentRow, CommentNode } from '@/common/types/comment';
-import type { TablesInsert } from '../supabase/database.types';
+import type { CommentPayload, CommentRow, InsertComment } from '@/common/types/comment';
+import type { User } from '@supabase/supabase-js';
 
-type InsertComment = TablesInsert<'comment'>;
-
-/** 평탄화된 rows 를 parent_id 기준으로 트리 변환 */
-function buildCommentTree(rows: CommentRow[]): CommentNode[] {
-  const map = new Map<string, CommentNode>();
-  const roots: CommentNode[] = [];
-
-  rows.forEach((r) => map.set(r.id, { ...r, children: [] }));
-
-  for (const r of rows) {
-    const node = map.get(r.id)!;
-    if (r.parent_id) {
-      const parent = map.get(r.parent_id);
-      if (parent) parent.children!.push(node);
-      else roots.push(node); // 혹시 부모가 없으면 루트로
-    } else {
-      roots.push(node);
-    }
-  }
-
-  return roots;
-}
-
-/** 특정 커뮤니티 글의 댓글 목록 가져오기 (대댓글 포함) */
-export async function selectCommentsByCommunityId(communityId: string): Promise<CommentNode[]> {
-  try {
-    const { data, error } = await supabase
-      .from('comment')
-      .select('id, community_id, profile_id, parent_id, contents, is_deleted, created_at')
-      .eq('community_id', communityId)
-      .order('created_at', { ascending: true });
-
-    if (error) throw error;
-    const rows = (data ?? []) as CommentRow[];
-    return buildCommentTree(rows);
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : '댓글을 불러오지 못했습니다.';
-    console.error('[comment] select error:', msg);
-    showAlert('error', msg);
-    return [];
-  }
-}
-
-export async function fetchCommentsByPost(community_id: string) {
-  const { data, error } = await supabase
-    .from('comment')
-    .select('*')
-    .eq('community_id', community_id)
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    console.error('fetchCommentsByPost', error.message);
-    showAlert('error', '댓글 조회 실패', error.message);
-    return [] as CommentRow[];
-  }
-  return (data ?? []) as CommentRow[];
-}
-
-/** 루트/대댓글 공통: parent_id 있으면 대댓글 */
-export async function insertComment(payload: {
-  community_id: string;
-  contents: string;
-  parent_id?: string | null;
-}) {
-  const {
-    data: { user },
-    error: authErr,
-  } = await supabase.auth.getUser();
-  if (authErr || !user) {
-    showAlert('error', '로그인이 필요합니다.');
-    return false;
-  }
-
+/** 댓글 추가. parent_id 있으면 대댓글인것 */
+export async function insertComment(
+  { community_id, contents, parent_id }: CommentPayload,
+  user: User
+) {
   const insert: InsertComment = {
-    community_id: payload.community_id,
+    community_id,
     profile_id: user.id,
-    contents: payload.contents,
-    parent_id: payload.parent_id ?? null,
+    contents,
+    parent_id: parent_id ?? null,
   };
 
   const { error } = await supabase.from('comment').insert(insert).single();
   if (error) {
-    console.error('insertComment', error.message);
     showAlert('error', '댓글 등록 실패', error.message);
     return false;
   }
   return true;
 }
 
-export async function updateComment(id: string, contents: string) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    showAlert('error', '로그인이 필요합니다.');
-    return false;
-  }
+/** 댓글 업데이트 */
+export async function updateComment(id: string, contents: string, user: User) {
   const { error } = await supabase
     .from('comment')
     .update({ contents })
     .eq('id', id)
-    .eq('profile_id', user.id) // 본인만 수정
+    .eq('profile_id', user.id)
     .select('id')
     .single();
 
   if (error) {
-    console.error('updateComment', error.message);
     showAlert('error', '댓글 수정 실패', error.message);
     return false;
   }
   return true;
 }
 
-/** 댓글 삭제: 자식 유무/대댓글 여부에 따라 soft/hard delete */
-export async function deleteComment(params: { comment_id: string }): Promise<boolean> {
+/** 댓글 삭제: 자식 유무에 따라 soft/hard 삭제 */
+export async function deleteComment(params: { comment_id: string }, user: User): Promise<boolean> {
   try {
-    const {
-      data: { user },
-      error: authErr,
-    } = await supabase.auth.getUser();
-    if (authErr) throw authErr;
-    if (!user) {
-      showAlert('error', '로그인이 필요합니다.');
-      return false;
-    }
-
     const commentId = params.comment_id;
 
     // 1) 대상 댓글 조회
@@ -191,30 +105,33 @@ export async function deleteComment(params: { comment_id: string }): Promise<boo
     }
 
     return true;
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : '댓글 삭제에 실패했습니다.';
-    console.error('[comment] delete error:', msg);
-    showAlert('error', msg);
-    return false;
+  } catch (error) {
+    if (error instanceof Error) {
+      showAlert('error', '댓글 삭제 실패', error.message);
+    } else if (typeof error === 'string') {
+      showAlert('error', '댓글 삭제 실패', error);
+    }
   }
+  return false;
 }
 
-// 평평하게 전부 가져오기 (루트+대댓글)
-export async function fetchCommentsFlat(communityId: string) {
-  const { data, error } = await supabase
-    .from('comment')
-    .select('id, community_id, profile_id, parent_id, contents, is_deleted, created_at')
-    .eq('community_id', communityId)
-    .order('created_at', { ascending: true });
+/** 특정 커뮤니티 글의 댓글 목록 가져오기 (대댓글 포함) */
+export async function selectCommentsByCommunityId(communityId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('comment')
+      .select('id, community_id, profile_id, parent_id, contents, is_deleted, created_at')
+      .eq('community_id', communityId)
+      .order('created_at', { ascending: true });
 
-  if (error) throw error;
-  return (data ?? []) as Array<{
-    id: string;
-    community_id: string;
-    profile_id: string;
-    parent_id: string | null;
-    contents: string | null;
-    is_deleted: boolean;
-    created_at: string | null;
-  }>;
+    if (error) throw error;
+    return (data ?? []) as CommentRow[];
+  } catch (error) {
+    if (error instanceof Error) {
+      showAlert('error', '댓글 목록 가져오기 실패', error.message);
+    } else if (typeof error === 'string') {
+      showAlert('error', '댓글 목록 가져오기 실패', error);
+    }
+    return [];
+  }
 }

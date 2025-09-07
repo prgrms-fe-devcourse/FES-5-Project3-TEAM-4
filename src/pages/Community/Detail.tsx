@@ -5,12 +5,13 @@ import LikeButton from './components/LikeButton';
 import { Button } from '@/common/components/Button';
 import { showAlert, showConfirmAlert } from '@/common/utils/sweetalert';
 import { FiArrowLeft } from 'react-icons/fi';
-import CommentItem from './components/CommentItem';
+import CommentItem from './components/commentItem/CommentItem';
 import { formatDate } from '@/common/utils/format';
 import { useToggleLike } from '@/common/hooks/useToggleLike';
 import { insertComment } from '@/common/api/Community/comment';
 import { getCommunityDetail } from '@/common/api/Community/detail';
 import type { CommunityDetail as CommunityDetailVM } from '@/common/types/community';
+import { getAuthedUser } from '@/common/api/auth/auth';
 
 export default function CommunityDetail() {
   const nav = useNavigate();
@@ -70,10 +71,12 @@ export default function CommunityDetail() {
   };
 
   const onSubmitComment = async () => {
-    if (!isAuthed) return showAlert('error', '로그인이 필요합니다.');
+    const user = await getAuthedUser();
     const text = commentText.trim();
+    if (!user) return;
+    if (!isAuthed) return showAlert('error', '로그인이 필요합니다.');
     if (!text) return showAlert('error', '댓글 내용을 입력해 주세요.');
-    const saved = await insertComment({ community_id: id, contents: text });
+    const saved = await insertComment({ community_id: id, contents: text, parent_id: null }, user);
     if (!saved) return;
     setCommentText('');
     setCommunityDetail(await getCommunityDetail(id)); // 댓글/익명/이미지 포함 전체 갱신
