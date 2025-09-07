@@ -3,7 +3,7 @@ interface Column {
   className?: string;
 }
 
-export function ListHeader({
+export function CommunityListHeader({
   columns = [
     { text: '날짜', className: 'basis-[140px] shrink-0' },
     { text: '제목', className: 'flex-1 min-w-0 pl-4' },

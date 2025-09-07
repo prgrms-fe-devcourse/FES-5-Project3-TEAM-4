@@ -1,4 +1,4 @@
-import LikeButton from '@/pages/Community/components/LikeButton';
+import LikeButton from '@/pages/Community/components/shared/LikeButton';
 
 export interface Post {
   id: number | string;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import PostEditor from './components/PostEditor';
+import PostEditor from './components/postEditor/PostEditor';
 import { selectCommunityById } from '@/common/api/Community/community';
 import type { Tables } from '@/common/api/supabase/database.types';
 import { showAlert } from '@/common/utils/sweetalert';

@@ -3,7 +3,7 @@ import { ListItem, type Post } from '@/common/components/ListItem';
 import type { CommunityRowUI } from '@/common/types/community';
 import { Link, useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
-import { ListHeader } from '@/pages/Community/components/ListHeader';
+import { CommunityListHeader } from '@/pages/Community/components/index/CommunityListHeader';
 import { formatDate } from '@/common/utils/format';
 import supabase from '@/common/api/supabase/supabase';
 import { useToggleLike } from '@/common/hooks/useToggleLike';
@@ -91,12 +91,12 @@ function Likes() {
     <section className="w-full lg:w-[750px] h-[90vh] lg:h-[85vh] pt-10 pb-[86px] mx-auto max-w-[960px] px-6 text-main-white">
       <h1 className="text-main-white pt-14 text-2xl font-semibold mb-4">Likes</h1>
       <span className="text-main-white text-end mb-4 ">좋아요한 글 : {total}개</span>
-      <ListHeader />
+      <CommunityListHeader />
 
       {loading ? (
         <Loading mode="contents" />
       ) : (
-        <ul className="mt-4 space-y-3 h-[80%] overflow-y-auto scrollbar-thin scrollbar-thumb-white/60 scrollbar-track-transparent">
+        <ul className="mt-4 p-[1px] space-y-3 h-[80%] overflow-y-auto scrollbar-thin scrollbar-thumb-white/60 scrollbar-track-transparent">
           {likedPosts.map((post) => {
             return (
               <ListItem

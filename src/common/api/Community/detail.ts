@@ -1,38 +1,9 @@
 import supabase from '@/common/api/supabase/supabase';
 import { selectCommunityById } from '@/common/api/Community/community';
-import { fetchCommentsFlat } from '@/common/api/Community/comment';
+import { selectCommentsByCommunityId } from '@/common/api/Community/comment';
 import { showAlert } from '@/common/utils/sweetalert';
-import type { CommentNode } from '@/common/types/comment';
 import type { CommunityDetail } from '@/common/types/community';
-
-function buildCommentTree(
-  rows: Array<{
-    id: string;
-    community_id: string;
-    profile_id: string;
-    parent_id: string | null;
-    contents: string | null;
-    is_deleted: boolean;
-    created_at: string | null;
-  }>
-): CommentNode[] {
-  const map = new Map<string, CommentNode>();
-  const roots: CommentNode[] = [];
-
-  rows.forEach((r) => map.set(r.id, { ...r, children: [] }));
-  rows.forEach((r) => {
-    const node = map.get(r.id)!;
-    if (r.parent_id) {
-      const p = map.get(r.parent_id);
-      if (p) p.children!.push(node);
-      else roots.push(node);
-    } else {
-      roots.push(node);
-    }
-  });
-
-  return roots;
-}
+import { buildCommentTree } from '@/common/utils/comment';
 
 export async function getCommunityDetail(communityId: string): Promise<CommunityDetail> {
   // 게시글 기본 데이터
@@ -74,24 +45,20 @@ export async function getCommunityDetail(communityId: string): Promise<Community
   }
 
   // 댓글 + 익명 매핑
-  const flat = await fetchCommentsFlat(communityId);
-  const orderAsc = flat.slice().sort((a, b) => {
-    const at = a.created_at ? new Date(a.created_at).getTime() : 0;
-    const bt = b.created_at ? new Date(b.created_at).getTime() : 0;
-    return at - bt;
-  });
-  const anon = new Map<string, string>();
+  const commentList = await selectCommentsByCommunityId(communityId);
+  const anonCommentList: Record<string, string> = {};
+
   let num = 1;
-  for (const r of orderAsc) {
-    if (r.profile_id === base.profile_id) continue;
-    if (!anon.has(r.profile_id)) anon.set(r.profile_id, `익명${num++}`);
+  for (const comment of commentList) {
+    if (comment.profile_id === base.profile_id) continue;
+    if (!anonCommentList[comment.profile_id]) anonCommentList[comment.profile_id] = `익명${num++}`;
   }
 
   return {
     row: { ...base, likedByMe },
     images,
-    comments: buildCommentTree(flat),
-    anonMap: Object.fromEntries(anon),
+    comments: buildCommentTree(commentList),
+    anonMap: anonCommentList,
     isAuthed: !!user,
     currentUserId: user?.id ?? null,
     canEdit: !!(user && user.id === base.profile_id),

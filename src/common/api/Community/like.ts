@@ -30,7 +30,7 @@ export async function toggleLike(communityId: string): Promise<ToggleLikeResult>
 }
 
 /**
- * 내가 좋아요한 게시글들 전체를 조회
+ * 내가 좋아요한 게시글들 전체를 조회 + 게시글 전체 정보
  * @param id
  * @returns
  */
@@ -55,5 +55,32 @@ export async function selectLikeListWithCommunity(
       showAlert('error', '글 조회 실패', error);
     }
     return null;
+  }
+}
+
+/** 주어진 글 ID들 중, 내가 좋아요한 community_id 목록만 반환 */
+export async function selectMyLikedCommunityId(
+  userId: string,
+  communityIds: string[]
+): Promise<Set<string>> {
+  try {
+    if (!userId || communityIds.length === 0) return new Set();
+
+    const { data, error } = await supabase
+      .from('likes')
+      .select('community_id')
+      .eq('profile_id', userId)
+      .in('community_id', communityIds);
+
+    if (error) throw error;
+
+    return new Set((data ?? []).map((r) => r.community_id as string));
+  } catch (err) {
+    if (err instanceof Error) {
+      showAlert('error', '좋아요 조회 실패', err.message);
+    } else if (typeof err === 'string') {
+      showAlert('error', '좋아요 조회 실패', err);
+    }
+    return new Set();
   }
 }

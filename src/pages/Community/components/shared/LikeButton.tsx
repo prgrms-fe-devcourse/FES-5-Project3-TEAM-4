@@ -1,14 +1,20 @@
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 
-type Props = {
+type LikeButtonProps = {
   liked: boolean;
   count: number;
   size?: number;
   className?: string;
-  onPress?: () => void; // 부모가 토글 로직을 가짐
+  onPress?: () => void;
 };
 
-export default function LikeButton({ liked, count, size = 16, className = '', onPress }: Props) {
+export default function LikeButton({
+  liked,
+  count,
+  size = 16,
+  className = '',
+  onPress,
+}: LikeButtonProps) {
   const Icon = liked ? AiFillHeart : AiOutlineHeart;
 
   return (
