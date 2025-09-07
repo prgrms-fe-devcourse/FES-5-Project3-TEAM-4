@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { deleteCommunity } from '@/common/api/Community/community';
-import LikeButton from './components/LikeButton';
+import LikeButton from './components/shared/LikeButton';
 import { Button } from '@/common/components/Button';
 import { showAlert, showConfirmAlert } from '@/common/utils/sweetalert';
 import { FiArrowLeft } from 'react-icons/fi';

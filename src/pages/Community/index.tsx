@@ -1,17 +1,16 @@
 import { useNavigate } from 'react-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ListHeader } from './components/ListHeader';
-import { CommunityToolbar } from './components/CommunityToolbar';
-import { CommunityListView } from './components/CommunityListView';
-import { CommunityFooter } from './components/CommunityFooter';
-import type { SortKey } from './components/SortBar';
-import { selectCommunityList } from '@/common/api/Community/community';
+import { CommunityListHeader } from './components/index/CommunityListHeader';
+import { CommunityToolbar } from './components/index/CommunityToolbar';
+import { CommunityListView } from './components/index/CommunityListView';
+import { CommunityFooter } from './components/index/CommunityFooter';
+import type { SortKey } from './components/index/SortBar';
 import type { CommunityRowUI, CommunitySortKey } from '@/common/types/community';
 import { formatDate } from '@/common/utils/format';
 import { debounce } from '@/common/utils/debounce';
-import supabase from '@/common/api/supabase/supabase';
 import { useToggleLike } from '@/common/hooks/useToggleLike';
 import type { Post } from '@/common/components/ListItem';
+import { fetchCommunityPageWithLiked } from './components/index/service';
 
 const PAGE_SIZE = 10;
 const sortMap: Record<SortKey, { column: CommunitySortKey; ascending: boolean }> = {
@@ -55,42 +54,29 @@ export default function Community() {
   );
 
   useEffect(() => {
-    const fetchList = async () => {
+    let alive = true;
+
+    (async () => {
       setLoading(true);
       try {
         const { column, ascending } = sortMap[sort];
-        const { items, total } = await selectCommunityList(column, ascending, {
+        const { items, total } = await fetchCommunityPageWithLiked({
+          sort: { column, ascending },
           page,
           pageSize: PAGE_SIZE,
           keyword,
         });
 
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        let likedSet = new Set<string>();
-        if (user && items.length) {
-          const { data: likedRows } = await supabase
-            .from('likes')
-            .select('community_id')
-            .eq('profile_id', user.id)
-            .in(
-              'community_id',
-              items.map((i) => i.id)
-            );
-
-          likedSet = new Set((likedRows ?? []).map((r) => r.community_id as string));
-        }
-
-        setRows(items.map((i) => ({ ...i, likedByMe: likedSet.has(i.id) })));
+        if (!alive) return;
+        setRows(items);
         setTotal(total);
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
+    })();
+    return () => {
+      alive = false;
     };
-
-    fetchList();
   }, [page, sort, keyword]);
 
   const handleClickLike = async (communityId: string) => {
@@ -118,7 +104,7 @@ export default function Community() {
         }}
       />
 
-      <ListHeader />
+      <CommunityListHeader />
 
       <CommunityListView
         posts={listForUI}

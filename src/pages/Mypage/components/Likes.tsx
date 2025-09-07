@@ -3,7 +3,7 @@ import { ListItem, type Post } from '@/common/components/ListItem';
 import type { CommunityRowUI } from '@/common/types/community';
 import { Link, useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
-import { ListHeader } from '@/pages/Community/components/ListHeader';
+import { ListHeader } from '@/pages/Community/components/index/CommunityListHeader';
 import { formatDate } from '@/common/utils/format';
 import supabase from '@/common/api/supabase/supabase';
 import { useToggleLike } from '@/common/hooks/useToggleLike';

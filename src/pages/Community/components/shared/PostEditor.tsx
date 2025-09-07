@@ -47,9 +47,14 @@ export default function PostEditor({ mode, initial, onSubmitDone }: PostEditorPr
     if (!open) return;
     (async () => {
       try {
+        const user = await getAuthedUser();
+        if (!user) {
+          showAlert('error', '로그인 확인 중 오류 발생');
+          return;
+        }
+
         setTarotLoading(true);
         setTarotErr(null);
-        const user = await getAuthedUser();
         const rows = await listTarotImagesByUser(user.id);
         setTarotRows(rows ?? []);
       } catch (e) {
@@ -105,6 +110,10 @@ export default function PostEditor({ mode, initial, onSubmitDone }: PostEditorPr
     setIsSubmitting(true);
     try {
       const user = await getAuthedUser();
+      if (!user) {
+        showAlert('error', '로그인 확인 중 오류 발생');
+        return;
+      }
 
       // 1) 새 파일 업로드
       const newUrls = await uploadFiles(user.id, newFiles);
