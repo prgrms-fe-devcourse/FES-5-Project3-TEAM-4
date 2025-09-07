@@ -32,7 +32,7 @@ function Management() {
   return (
     <section className="w-full lg:w-[750px] h-[90vh] lg:h-[85vh] flex flex-col xl:items-baseline items-center gap-5 pt-10">
       <h1 className="text-main-white pt-14 text-2xl font-semibold">Management</h1>
-      <div className="w-full lg:w-[490px] h-[60%] border border-main-black rounded-lg bg-[#151228]">
+      <div className="w-full lg:w-[490px] h-[450px] border border-main-black rounded-lg bg-[#151228]">
         <div className="flex flex-col items-center pt-10">
           <NewPassword provider={provider} />
           <div className="pt-10">
