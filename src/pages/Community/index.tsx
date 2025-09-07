@@ -1,20 +1,19 @@
 import { useNavigate } from 'react-router';
-import { useEffect, useState, useMemo } from 'react';
-import { ListItem, type Post } from '@/common/components/ListItem';
-import { SearchInput } from '@/common/components/SearchInput';
-import { SortBar, type SortKey } from './components/SortBar';
+import { useEffect, useMemo, useState } from 'react';
 import { ListHeader } from './components/ListHeader';
-import Pagination from './components/Pagination';
+import { CommunityToolbar } from './components/CommunityToolbar';
+import { CommunityListView } from './components/CommunityListView';
+import { CommunityFooter } from './components/CommunityFooter';
+import type { SortKey } from './components/SortBar';
 import { selectCommunityList } from '@/common/api/Community/community';
 import type { CommunityRowUI, CommunitySortKey } from '@/common/types/community';
 import { formatDate } from '@/common/utils/format';
 import { debounce } from '@/common/utils/debounce';
 import supabase from '@/common/api/supabase/supabase';
-import AuthOnlyButton from '@/common/components/AuthOnlyButton';
 import { useToggleLike } from '@/common/hooks/useToggleLike';
+import type { Post } from '@/common/components/ListItem';
 
 const PAGE_SIZE = 10;
-
 const sortMap: Record<SortKey, { column: CommunitySortKey; ascending: boolean }> = {
   new: { column: 'created_at', ascending: false },
   old: { column: 'created_at', ascending: true },
@@ -42,36 +41,36 @@ export default function Community() {
       }, 400),
     []
   );
-  // UI에 필요한 형태로만 매핑해서 ListItem에 넘김
-  const listForUI: Post[] = rows.map((r) => ({
-    id: r.id,
-    date: formatDate(r.created_at ?? ''),
-    title: r.title ?? '',
-    likes: r.likes ?? 0,
-    liked: !!r.likedByMe,
-  }));
+
+  const listForUI: Post[] = useMemo(
+    () =>
+      rows.map((r) => ({
+        id: r.id,
+        date: formatDate(r.created_at ?? ''),
+        title: r.title ?? '',
+        likes: r.likes ?? 0,
+        liked: !!r.likedByMe,
+      })),
+    [rows]
+  );
 
   useEffect(() => {
     const fetchList = async () => {
       setLoading(true);
-
-      // 키워드로 검색하는거
       try {
         const { column, ascending } = sortMap[sort];
         const { items, total } = await selectCommunityList(column, ascending, {
           page,
           pageSize: PAGE_SIZE,
-          keyword: keyword,
+          keyword,
         });
 
-        // 로그인 유저 가져오기
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
         let likedSet = new Set<string>();
         if (user && items.length) {
-          // 내가 좋아요한 community_id만 뽑기
           const { data: likedRows } = await supabase
             .from('likes')
             .select('community_id')
@@ -84,7 +83,6 @@ export default function Community() {
           likedSet = new Set((likedRows ?? []).map((r) => r.community_id as string));
         }
 
-        // rows에 likedByMe 플래그 합치기
         setRows(items.map((i) => ({ ...i, likedByMe: likedSet.has(i.id) })));
         setTotal(total);
       } finally {
@@ -105,25 +103,16 @@ export default function Community() {
     );
   };
 
-  const handleClickList = (id: string) => {
-    const row = rows.find((r) => r.id === id);
-    navigate(`/community/${id}`, { state: { row } });
-  };
-
   return (
     <>
-      <SearchInput
-        placeholder="검색어를 입력해주세요"
-        value={inputValue}
-        onChange={(e) => {
-          setInputValue(e.currentTarget.value);
-          debouncedSetKeyword(e.currentTarget.value);
+      <CommunityToolbar
+        inputValue={inputValue}
+        onInputChange={(v) => {
+          setInputValue(v);
+          debouncedSetKeyword(v);
         }}
-      />
-
-      <SortBar
-        value={sort}
-        onChange={(s) => {
+        sort={sort}
+        onSortChange={(s) => {
           setSort(s);
           setPage(1);
         }}
@@ -131,36 +120,23 @@ export default function Community() {
 
       <ListHeader />
 
-      {loading ? (
-        <div className="mt-6 text-white/70">로딩 중…</div>
-      ) : (
-        <ul className="mt-4 space-y-3">
-          {listForUI.map((post) => (
-            <ListItem
-              key={post.id}
-              post={post}
-              onClick={(id) => handleClickList(String(id))}
-              onLike={(id) => handleClickLike(String(id))}
-            />
-          ))}
-          {listForUI.length === 0 && (
-            <li className="text-white/60 py-6 text-center">검색 결과가 없습니다.</li>
-          )}
-        </ul>
-      )}
+      <CommunityListView
+        posts={listForUI}
+        loading={loading}
+        onClick={(id) => {
+          const row = rows.find((r) => r.id === id);
+          navigate(`/community/${id}`, { state: { row } });
+        }}
+        onLike={handleClickLike}
+      />
 
-      <div className="relative mt-8">
-        <Pagination total={total} page={page} pageSize={PAGE_SIZE} onPageChange={setPage} />
-
-        <AuthOnlyButton
-          variant="ghost"
-          size="md"
-          className="absolute right-0 top-1/2 -translate-y-1/2"
-          onAuthed={() => navigate('/community/write')}
-        >
-          글쓰기
-        </AuthOnlyButton>
-      </div>
+      <CommunityFooter
+        total={total}
+        page={page}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+        onClickWrite={() => navigate('/community/write')}
+      />
     </>
   );
 }

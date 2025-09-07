@@ -30,7 +30,7 @@ export async function toggleLike(communityId: string): Promise<ToggleLikeResult>
 }
 
 /**
- * 내가 좋아요한 게시글들 전체를 조회
+ * 내가 좋아요한 게시글들 전체를 조회 + 게시글 전체 정보
  * @param id
  * @returns
  */

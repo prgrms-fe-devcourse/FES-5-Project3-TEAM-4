@@ -1,11 +1,11 @@
 import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai';
 
-type Props = {
-  total: number; // 전체 아이템 수
-  page: number; // 현재 페이지
-  pageSize: number; // 페이지당 아이템 수
+type PaginationProps = {
+  total: number;
+  page: number;
+  pageSize: number;
   onPageChange: (p: number) => void;
-  maxButtons?: number; // 가운데 숫자 버튼 최대 개수 (기본 5)
+  maxButtons?: number;
   className?: string;
 };
 
@@ -16,15 +16,13 @@ export default function Pagination({
   onPageChange,
   maxButtons = 5,
   className = '',
-}: Props) {
+}: PaginationProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
   const clamp = (n: number) => Math.min(totalPages, Math.max(1, n));
-
-  // 가운데 페이지 버튼 범위 계산
   const half = Math.floor(maxButtons / 2);
   let start = Math.max(1, page - half);
   const end = Math.min(totalPages, start + maxButtons - 1);
+
   if (end - start + 1 < maxButtons) start = Math.max(1, end - maxButtons + 1);
 
   const pages = [];
@@ -52,7 +50,6 @@ export default function Pagination({
         <AiOutlineLeft />
       </button>
 
-      {/* 첫 페이지로 점프 + 앞쪽 생략 표시 */}
       {start > 1 && (
         <>
           <button type="button" className={`${btnBase} ${normal}`} onClick={() => onPageChange(1)}>
@@ -62,7 +59,6 @@ export default function Pagination({
         </>
       )}
 
-      {/* 가운데 윈도우 */}
       {pages.map((p) => (
         <button
           key={p}
@@ -75,7 +71,6 @@ export default function Pagination({
         </button>
       ))}
 
-      {/* 뒤쪽 생략 표시 + 마지막 페이지로 점프 */}
       {end < totalPages && (
         <>
           {end < totalPages - 1 && <span className="px-1 text-white/60">…</span>}
