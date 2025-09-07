@@ -1,69 +1,115 @@
-# React + TypeScript + Vite
+## 0. 목차
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+1. [프로젝트 제목](#1-프로젝트-제목)
+2. [프로젝트 개요](#2-프로젝트-개요)
+3. [설치 및 실행 방법](#3-설치-및-실행-방법)
+4. [기술 스택](#4-기술-스택)
+5. [팀 구성 및 역할](#5-기여-안내-팀-구성-및-역할)
+6. [개발 컨벤션](#6-개발-컨벤션)
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 1. 프로젝트 제목
 
-## Expanding the ESLint configuration
+**\*TAROT#**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 2. 프로젝트 개요
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+**TAROT#**는 익명 기반의 온라인 타로 서비스로, 사용자가 직접 선택한 카드를 통해 개인 맞춤형 타로 풀이를 제공합니다.  
+서비스명은 발신 번호 표시 제한 코드 `*23#`에서 착안하여, **익명성**과 **진정성 있는 조언 제공**을 핵심 가치로 합니다.  
+사용자는 연애, 취업/학업, 건강, 금전 등 다양한 주제에 맞춘 타로 풀이를 경험할 수 있으며, 결과를 커뮤니티에서 공유하고 다른 사용자들과 소통할 수 있습니다.  
+TAROT#의 주요 특징은 사용자가 처음부터 끝까지 직접 선택한 카드로 풀이가 진행되어, 실제 타로카페에 방문한 듯한 **맞춤형 경험**을 제공한다는 점입니다.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## 3. 설치 및 실행 방법
+
+### 1) 클론
+
+```bash
+git clone https://github.com/prgrms-fe-devcourse/FES-5-Project3-TEAM-4.git
+cd FES-5-Project3-TEAM-4
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2) 패키지 설치
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+### 3) 개발 서버 실행
+
+```bash
+npm run dev
+```
+
+### 4) 빌드
+
+```bash
+npm run build
+```
+
+---
+
+## 4. 기술 스택
+
+- **프론트엔드**: React, TypeScript, Vite
+- **백엔드**: Supabase
+- **스타일링**: Tailwind CSS
+- **상태 관리**: Zustand
+- **품질 관리**: ESLint, Prettier
+- **배포**: Vercel
+- **기타 도구**: GSAP, Three.js, Rive
+
+---
+
+## 5. 기여 안내 (팀 구성 및 역할)
+
+- **김영민 (팀장)**: 수파베이스 구조 설계, 마이페이지 제작, Auth 기능 구현
+- **김유하**: 타로 스프레드 페이지, 타로 결과 페이지 제작
+- **김태은**: 커뮤니티 페이지 제작, 타로 셔플 페이지 제작
+- **정소영**: 랜딩 페이지 제작
+
+---
+
+## 6. 개발 컨벤션
+
+### 브랜치 전략 (GitHub Flow)
+
+- `Main`: 항상 배포 가능한 상태 유지
+- `Feature/기능명-이름`: 기능 단위 개발 브랜치
+- `Fix/버그명-이름`: 버그 수정 브랜치
+- `Design/수정될UI이름-이름`: 사용자 UI 변경 브랜치
+- `Docs/수정문서이름-이름`: 문서 수정 브랜치
+- `Refactor/리팩토링코드이름-이름`: 리팩토링 브랜치
+
+### 커밋 메시지 규칙
+
+- 예시:
+  - `feat : 로그인 기능 - 비밀번호 확인 알림 추가`
+- 규칙:
+  - `feat` : 새로운 기능 추가
+  - `fix` : 버그 수정
+  - `docs` : 문서 수정
+  - `format` : 코드 포맷팅
+  - `style` : CSS 등 UI 업데이트
+  - `chore` : 기타 변경사항
+
+### 코드 스타일
+
+- ESLint + Prettier 적용
+- 코드 포맷팅 자동화
+- 배포 전 `npm run format`
+
+### Pull Request 규칙
+
+- 리뷰어 1명 지정
+- 리뷰 후, PR 올린 사람이 머지
+
+---
+
+## 7. 배포 링크
+
+https://fes-5-project3-team-4.vercel.app/
