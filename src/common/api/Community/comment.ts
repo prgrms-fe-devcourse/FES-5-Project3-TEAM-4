@@ -3,6 +3,12 @@ import { showAlert } from '@/common/utils/sweetalert';
 import type { CommentPayload, CommentRow, InsertComment } from '@/common/types/comment';
 import type { User } from '@supabase/supabase-js';
 
+type CommentTarget = {
+  id: string;
+  profile_id: string;
+  parent_id: string | null;
+};
+
 /** 댓글 추가. parent_id 있으면 대댓글인것 */
 export async function insertComment(
   { community_id, contents, parent_id }: CommentPayload,
@@ -40,81 +46,6 @@ export async function updateComment(id: string, contents: string, user: User) {
   return true;
 }
 
-/** 댓글 삭제: 자식 유무에 따라 soft/hard 삭제 */
-export async function deleteComment(params: { comment_id: string }, user: User): Promise<boolean> {
-  try {
-    const commentId = params.comment_id;
-
-    // 1) 대상 댓글 조회
-    const { data: target, error: getErr } = await supabase
-      .from('comment')
-      .select('id, profile_id, parent_id')
-      .eq('id', commentId)
-      .single();
-
-    if (getErr) throw getErr;
-    if (!target) {
-      showAlert('error', '댓글을 찾을 수 없습니다.');
-      return false;
-    }
-    if (target.profile_id !== user.id) {
-      showAlert('error', '본인 댓글만 삭제할 수 있어요.');
-      return false;
-    }
-
-    // 2) 자식 여부 확인 (부모 댓글인 경우만)
-    let hasChildren = false;
-    if (!target.parent_id) {
-      const { count, error: cntErr } = await supabase
-        .from('comment')
-        .select('id', { count: 'exact', head: true })
-        .eq('parent_id', commentId);
-      if (cntErr) throw cntErr;
-      hasChildren = (count ?? 0) > 0;
-    }
-
-    // 3) 삭제 규칙 적용
-    if (target.parent_id) {
-      // ▶ 대댓글: 하드 삭제
-      const { error: delErr } = await supabase
-        .from('comment')
-        .delete()
-        .eq('id', commentId)
-        .eq('profile_id', user.id);
-      if (delErr) throw delErr;
-    } else {
-      // ▶ 부모 댓글
-      if (hasChildren) {
-        // 자식 있음 → 소프트 삭제(placeholder 유지)
-        const { error: updErr } = await supabase
-          .from('comment')
-          .update({ is_deleted: true, contents: null })
-          .eq('id', commentId)
-          .eq('profile_id', user.id)
-          .single();
-        if (updErr) throw updErr;
-      } else {
-        // 자식 없음 → 하드 삭제
-        const { error: delErr } = await supabase
-          .from('comment')
-          .delete()
-          .eq('id', commentId)
-          .eq('profile_id', user.id);
-        if (delErr) throw delErr;
-      }
-    }
-
-    return true;
-  } catch (error) {
-    if (error instanceof Error) {
-      showAlert('error', '댓글 삭제 실패', error.message);
-    } else if (typeof error === 'string') {
-      showAlert('error', '댓글 삭제 실패', error);
-    }
-  }
-  return false;
-}
-
 /** 특정 커뮤니티 글의 댓글 목록 가져오기 (대댓글 포함) */
 export async function selectCommentsByCommunityId(communityId: string) {
   try {
@@ -133,5 +64,78 @@ export async function selectCommentsByCommunityId(communityId: string) {
       showAlert('error', '댓글 목록 가져오기 실패', error);
     }
     return [];
+  }
+}
+
+async function selectCommentTarget(commentId: string): Promise<CommentTarget> {
+  const { data, error } = await supabase
+    .from('comment')
+    .select('id, profile_id, parent_id')
+    .eq('id', commentId)
+    .single();
+
+  if (error) throw error;
+  if (!data) throw new Error('댓글을 찾을 수 없습니다.');
+  return data as CommentTarget;
+}
+
+async function selectHasChildComments(commentId: string): Promise<boolean> {
+  const { count, error } = await supabase
+    .from('comment')
+    .select('id', { count: 'exact', head: true })
+    .eq('parent_id', commentId);
+
+  if (error) throw error;
+  return (count ?? 0) > 0;
+}
+
+async function deleteCommentHard(commentId: string, userId: string) {
+  const { error } = await supabase
+    .from('comment')
+    .delete()
+    .eq('id', commentId)
+    .eq('profile_id', userId);
+  if (error) throw error;
+}
+
+async function updateCommentSoftDelete(commentId: string, userId: string) {
+  const { error } = await supabase
+    .from('comment')
+    .update({ is_deleted: true, contents: null })
+    .eq('id', commentId)
+    .eq('profile_id', userId)
+    .single();
+  if (error) throw error;
+}
+
+/** 댓글 삭제 */
+export async function deleteComment(params: { comment_id: string }, user: User): Promise<boolean> {
+  try {
+    const commentId = params.comment_id;
+
+    const target = await selectCommentTarget(commentId);
+    if (target.profile_id !== user.id) {
+      throw new Error('본인 댓글만 삭제할 수 있어요.');
+    }
+
+    // 대댓글: 하드 삭제
+    if (target.parent_id) {
+      await deleteCommentHard(commentId, user.id);
+      return true;
+    }
+
+    // 부모 댓글: 자식 유무에 따라 soft/hard
+    const hasChildren = await selectHasChildComments(commentId);
+    if (hasChildren) {
+      await updateCommentSoftDelete(commentId, user.id);
+    } else {
+      await deleteCommentHard(commentId, user.id);
+    }
+
+    return true;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    showAlert('error', '댓글 삭제 실패', msg);
+    return false;
   }
 }

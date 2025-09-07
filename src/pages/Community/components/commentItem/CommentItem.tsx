@@ -33,6 +33,7 @@ export default function CommentItem({
 
   const handleSubmitReply = useCallback(async () => {
     const user = await getAuthedUser();
+    if (!user) return;
     if (!isAuthed) return showAlert('error', '로그인이 필요합니다.');
     if (depth !== 0) return;
 

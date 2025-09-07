@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import PostEditor from './components/shared/PostEditor';
+import PostEditor from './components/postEditor/PostEditor';
 import { showAlert } from '@/common/utils/sweetalert';
 
 export default function Write() {
