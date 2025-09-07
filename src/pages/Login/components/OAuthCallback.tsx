@@ -1,4 +1,3 @@
-import { insertProfile, selectProfileData } from '@/common/api/Profile/profile';
 import supabase from '@/common/api/supabase/supabase';
 import Loading from '@/common/components/Loading';
 import { useAuth } from '@/common/store/authStore';
@@ -28,9 +27,7 @@ function OAuthCallback() {
         });
         return;
       }
-      const userInfo = await selectProfileData(userData.id);
-      //회원이 아닐경우 profile테이블에 insert
-      if (!userInfo || userInfo.length === 0) insertProfile(userData.id);
+
       window.history.replaceState({}, '', '/');
       navigate(from, { replace: true });
     })();

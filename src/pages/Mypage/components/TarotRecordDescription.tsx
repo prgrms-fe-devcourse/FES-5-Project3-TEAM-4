@@ -44,7 +44,7 @@ function TarotRecordDescription({
         <p className="text-xl font-semibold">해석</p>
         <p className={`text-sm max-h-[66px] overflow-y-auto break-all ${scroll}`}>{result}</p>
       </div>
-      {type !== 'read' && (
+      {type === 'write' && (
         <div className="min-h-[30%] flex-1">
           <p className="text-xl font-semibold">기록하기</p>
           <textarea
@@ -57,8 +57,8 @@ function TarotRecordDescription({
           ></textarea>
         </div>
       )}
-      {type === 'read' && (
-        <div className="h-[40%] flex gap-5 justify-center items-center border-2  rounded-2xl">
+      {(type === 'read' || type === 'result') && (
+        <div className="h-[50%] flex gap-5 justify-center items-center border-2 rounded-2xl">
           <img className="w-[50%]" src="/images/threeCard.webp" alt="세 장의 카드 뒷면 이미지" />
           <Link
             to={'/tarot'}
